@@ -60,7 +60,7 @@ description: >-
 
 ## 4. 校验（必做，全部通过才算完成）
 
-1. **翻译一致性**：`python3 .zcode/skills/translate-article/scripts/check_translation.py <en文件> <zh文件>`
+1. **翻译一致性**：`python3 .agent/skills/translate-article/scripts/check_translation.py <en文件> <zh文件>`
    对每对文件比对围栏数、组件数、标题数、行数偏差、代码块逐字节一致性。
 2. **HTML 无残留**：检查 index.html 中无 `<Accordion`、`<Note>`、`<CodeGroup`、`%%COMP`、`<p>```
    等残留；`<pre>` 数量与 markdown 围栏块数一致。

@@ -2,7 +2,7 @@
 
 翻译各种 AI 相关的文献（文章、论文、博客等）。每篇文献一个独立目录，目录名格式：
 
-> 翻译新文献时使用工程内 skill：`.zcode/skills/translate-article/`（含完整流程、术语表、
+> 翻译新文献时使用工程内 skill：`.agent/skills/translate-article/`（含完整流程、术语表、
 > 组装脚本踩坑记录和 en/zh 一致性自检脚本 `check_translation.py`）。
 
 ```
