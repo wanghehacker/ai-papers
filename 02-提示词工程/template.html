@@ -157,6 +157,13 @@
   .card-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
 
   /* ── 封面与打印目录（仅打印时显示） ── */
+  .doc-footer {
+    max-width: 800px; margin-top: 56px; padding-top: 18px;
+    border-top: 1px solid var(--hairline);
+    font-size: 13px; color: var(--muted); line-height: 1.7;
+  }
+  .doc-footer a { color: var(--muted); }
+
   .cover, .toc-print { display: none; }
 
   @media (max-width: 900px) {
@@ -219,6 +226,7 @@
     a.card { break-inside: avoid; padding: 8pt 10pt; }
     .card-title { font-size: 9.2pt; }
     .card-text { font-size: 8.2pt; }
+    .doc-footer { font-size: 8.5pt; margin-top: 20pt; padding-top: 8pt; }
     .chap-eyebrow { font-size: 7pt; margin-bottom: 6pt; }
     .chap-desc { font-size: 8.4pt; }
     h2, h3, h4 { break-after: avoid; }
@@ -252,6 +260,10 @@
   </div>
 
 {{CONTENT}}
+
+  <footer class="doc-footer">
+    中文译文及排版以 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 授权，原文版权归 Anthropic 所有。
+  </footer>
 
 </main>
 

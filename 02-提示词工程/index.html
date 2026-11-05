@@ -157,6 +157,13 @@
   .card-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
 
   /* ── 封面与打印目录（仅打印时显示） ── */
+  .doc-footer {
+    max-width: 800px; margin-top: 56px; padding-top: 18px;
+    border-top: 1px solid var(--hairline);
+    font-size: 13px; color: var(--muted); line-height: 1.7;
+  }
+  .doc-footer a { color: var(--muted); }
+
   .cover, .toc-print { display: none; }
 
   @media (max-width: 900px) {
@@ -219,6 +226,7 @@
     a.card { break-inside: avoid; padding: 8pt 10pt; }
     .card-title { font-size: 9.2pt; }
     .card-text { font-size: 8.2pt; }
+    .doc-footer { font-size: 8.5pt; margin-top: 20pt; padding-top: 8pt; }
     .chap-eyebrow { font-size: 7pt; margin-bottom: 6pt; }
     .chap-desc { font-size: 8.4pt; }
     h2, h3, h4 { break-after: avoid; }
@@ -2725,6 +2733,10 @@ When the work the user asked for is done and checked, stop and report. Don't add
 <p>如果你从 Claude Haiku 4.5 迁移而来，这些拒绝是新增的。</p>
 <p>Claude Haiku 5.5 没有<a href="https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback#server-side-fallback">服务端回退</a>（beta）。如果请求被拒绝，请在你的客户端中处理 <code>stop_reason: "refusal"</code>。向 Claude Haiku 5.5 重发同样的请求通常会再次返回拒绝。</p>
 </section>
+
+  <footer class="doc-footer">
+    中文译文及排版以 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 授权，原文版权归 Anthropic 所有。
+  </footer>
 
 </main>
 
