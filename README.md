@@ -36,4 +36,14 @@ NN-中文标题/            # 编号两位数字 + 文章中文标题，如 01-�
 | 03 | Codex 应用服务器（协议参考文档） | [Codex App Server](https://learn.chatgpt.com/docs/app-server) |
 | 04 | 面向长时间运行智能体的高效运行框架 | [Effective harnesses for long-running agents](https://www.anthropic.com/research/effective-harnesses-for-long-running-agents) |
 
+## 许可
+
+本仓库的中文译文、译文排版与翻译流程文档以 [CC BY-NC-SA 4.0](LICENSE) 授权
+（署名—非商业性使用—相同方式共享 4.0 国际）。转载或改编请注明来源与作者，
+保留相同协议，且不得用于商业用途。
+
+英文原文与原文配图的著作权归原作者/原发布方所有，不在本许可范围内，仅作翻译对照与学习研究之用。
+
+## 合集结构
+
 多页文档合集的变体结构（见 `02-提示词工程/`）：`en/`、`zh/` 子目录存放编号的逐页 markdown，`build.py` + `template.html` 把 `zh/*.md` 组装成单页 docs 风格 `index.html`（屏幕端左侧栏导航，打印时自动切换为封面 + 目录 + 分章），再渲染以文章中文标题命名的 PDF（如 `提示词工程.pdf`）。文内互相引用的原文链接会被改写为章节内锚点。
