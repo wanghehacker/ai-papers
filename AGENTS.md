@@ -62,6 +62,9 @@ NN-中文标题/                     # NN 两位数字递增，如 04-面向长�
    02 在 `.doc-footer`，03 在 `.article-footer`）。改模板后重新渲染要确认它还在。
 8. **原始归属**：英文原文与配图著作权归 Anthropic / OpenAI 等原发布方，不在 CC 许可范围内；
    不要在 PDF 或页面上把自己标成原文作者。
+9. **未经确认不要 `git push`**：本地 `git add` / `git commit` 可以自行完成，但推送到远端前必须
+   先向用户说明「要推哪些 commit、改了什么」并得到明确同意。用户没点头就只停在本地，
+   交付时说清楚「已提交未推送」，不要自作主张推上去。
 
 ## 改完必须校验
 
@@ -93,4 +96,5 @@ grep -c -E '<Accordion|<Note>|<CodeGroup|%%COMP|<p>```' 目录/index.html
 - 一个逻辑改动一个 commit，中文说明；译文初版、PDF 渲染、模板/流程修改分开提交更易回溯。
 - 提交信息写清「改了什么 + 校验结果」，例如：
   `PDF 末页加一行 CC BY-NC-SA 4.0 许可声明` + `校验：4 个 PDF 均无文字溢出，页数不变（7/86/49/6）`。
-- 推送：`git push`（origin 已配好 pushurl，main 跟踪 `origin/main`）。
+- 推送：`git push`（origin 已配好 pushurl，main 跟踪 `origin/main`）。**执行前须经用户确认**（见硬性规则第 9 条），
+  确认后再推，推送后回报 commit hash 与远端状态。
