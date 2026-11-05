@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude 提示词工程指南（中文翻译）</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --ink: #1f1e1d;
+    --muted: #6e6d66;
+    --hairline: #e8e6dc;
+    --code-bg: #f6f5f0;
+    --accent: #c2543b;
+    --accent-soft: #fbefe9;
+    --side-bg: #f7f6f1;
+    --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", "Helvetica Neue", Arial, sans-serif;
+    --mono: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--sans); font-size: 15.5px; line-height: 1.78;
+    print-color-adjust: exact; -webkit-print-color-adjust: exact;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── 屏幕端侧栏 ── */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 300px;
+    background: var(--side-bg); border-right: 1px solid var(--hairline);
+    overflow-y: auto; padding: 28px 18px 40px;
+  }
+  .side-brand {
+    font-size: 16px; font-weight: 700; margin: 0 8px 4px;
+    letter-spacing: .01em;
+  }
+  .side-brand-sub {
+    font-family: var(--mono); font-size: 10.5px; color: var(--muted);
+    margin: 0 8px 18px; letter-spacing: .06em;
+  }
+  .side-item { margin-bottom: 6px; }
+  .side-ch {
+    display: block; padding: 6px 8px; border-radius: 6px;
+    font-size: 13px; font-weight: 600; color: var(--ink);
+  }
+  .side-ch:hover { background: #edece4; text-decoration: none; }
+  .side-subs { margin: 2px 0 8px; }
+  .side-sub {
+    display: block; padding: 3px 8px 3px 22px; border-radius: 6px;
+    font-size: 12px; color: var(--muted);
+  }
+  .side-sub:hover { color: var(--accent); text-decoration: none; }
+
+  /* ── 内容区 ── */
+  .content { margin-left: 300px; padding: 56px 56px 120px; }
+  .chapter { max-width: 800px; }
+  .chap-eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+    color: var(--muted); margin: 0 0 10px;
+  }
+  .chap-eyebrow a { color: var(--muted); }
+  .chap-desc { color: var(--muted); font-size: 14px; margin: 0 0 8px; }
+
+  h1 {
+    font-size: 30px; line-height: 1.3; font-weight: 700;
+    margin: 0 0 10px; letter-spacing: .01em;
+  }
+  h2 {
+    font-size: 21px; font-weight: 700; margin: 44px 0 14px;
+    padding-top: 22px; border-top: 1px solid var(--hairline);
+  }
+  h3 { font-size: 17.5px; font-weight: 700; margin: 32px 0 10px; }
+  h4 { font-size: 15.5px; font-weight: 700; margin: 24px 0 8px; }
+  p { margin: 0 0 16px; }
+  ul, ol { margin: 0 0 16px; padding-left: 1.7em; }
+  li { margin-bottom: 6px; }
+  hr { border: 0; border-top: 1px solid var(--hairline); margin: 30px 0; }
+
+  code {
+    font-family: var(--mono); font-size: .86em;
+    background: var(--code-bg); border: 1px solid var(--hairline);
+    border-radius: 4px; padding: 1px 5px;
+    word-break: break-word;
+  }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--hairline);
+    border-radius: 8px; padding: 14px 16px; overflow-x: auto;
+    font-size: 12.8px; line-height: 1.62; margin: 0 0 18px;
+  }
+  pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+  pre, code { white-space: pre-wrap; word-break: break-word; }
+
+  table {
+    border-collapse: collapse; width: 100%; margin: 0 0 18px;
+    font-size: 13.2px; line-height: 1.6;
+  }
+  th, td { border: 1px solid var(--hairline); padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--code-bg); font-weight: 600; }
+
+  /* ── 提示框 ── */
+  .callout {
+    border-radius: 8px; padding: 14px 16px 14px 46px; margin: 0 0 18px;
+    position: relative; font-size: 14px;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .co-note { background: #f5f4ef; border: 1px solid var(--hairline); }
+  .co-note::before {
+    content: "注"; position: absolute; left: 14px; top: 13px;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    color: var(--muted); border: 1px solid var(--muted);
+    border-radius: 4px; padding: 0 5px;
+  }
+  .co-tip { background: var(--accent-soft); border: 1px solid #f0d5c8; }
+  .co-tip::before {
+    content: "Tip"; position: absolute; left: 14px; top: 13px;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    color: var(--accent); border: 1px solid var(--accent);
+    border-radius: 4px; padding: 0 5px;
+  }
+
+  /* ── 折叠示例 ── */
+  details.acc {
+    border: 1px solid var(--hairline); border-radius: 8px;
+    margin: 0 0 18px; padding: 0; background: #fcfbf8;
+  }
+  details.acc summary {
+    cursor: pointer; padding: 12px 16px; font-weight: 600; font-size: 14px;
+    list-style: none;
+  }
+  details.acc summary::-webkit-details-marker { display: none; }
+  details.acc summary::before { content: "▸ "; color: var(--accent); }
+  details.acc[open] summary::before { content: "▾ "; }
+  details.acc summary:hover { color: var(--accent); }
+  .acc-body { padding: 2px 16px 14px; }
+
+  /* ── 代码块分组 ── */
+  .code-group pre { border-radius: 0; margin-bottom: 0; border-bottom: 0; }
+  .code-group pre:first-child { border-radius: 8px 8px 0 0; }
+  .code-group pre:last-child { border-radius: 0 0 8px 8px; border-bottom: 1px solid var(--hairline); margin-bottom: 18px; }
+  .code-group pre:only-child { border-radius: 8px; margin-bottom: 18px; }
+
+  /* ── 卡片 ── */
+  .card-group {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px; margin: 0 0 18px;
+  }
+  a.card {
+    display: flex; flex-direction: column; gap: 6px;
+    border: 1px solid var(--hairline); border-radius: 10px;
+    padding: 14px 16px; color: inherit; background: #fff;
+  }
+  a.card:hover { border-color: var(--accent); background: var(--accent-soft); text-decoration: none; }
+  .card-title { font-weight: 700; font-size: 14.5px; color: var(--accent); }
+  .card-arrow { font-weight: 400; }
+  .card-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* ── 封面与打印目录（仅打印时显示） ── */
+  .cover, .toc-print { display: none; }
+
+  @media (max-width: 900px) {
+    .sidebar { position: static; width: auto; }
+    .content { margin-left: 0; padding: 28px 20px 80px; }
+  }
+
+  /* ── 打印 ── */
+  @page { size: A4; margin: 16mm 15mm 18mm; }
+  @media print {
+    .sidebar { display: none; }
+    .content { margin: 0; padding: 0; max-width: none; }
+    body { font-size: 9.8pt; line-height: 1.72; }
+
+    .cover {
+      display: block; break-after: page; padding-top: 60mm;
+    }
+    .cover-brand {
+      font-family: var(--mono); font-size: 9pt; letter-spacing: .25em;
+      color: var(--muted); margin: 0 0 14mm;
+    }
+    .cover h1 { font-size: 30pt; margin: 0 0 6mm; }
+    .cover-sub { font-size: 13pt; color: var(--muted); margin: 0 0 16mm; }
+    .cover-meta { font-family: var(--mono); font-size: 9pt; color: var(--muted); margin: 0; line-height: 2; }
+
+    .toc-print {
+      display: block; break-after: page;
+    }
+    .toc-print h2 { border: 0; margin: 0 0 8mm; font-size: 16pt; }
+    .toc-print ol { list-style: none; padding: 0; margin: 0; }
+    .toc-print li {
+      font-size: 11pt; padding: 2.6mm 0; border-bottom: 1px solid var(--hairline);
+    }
+    .toc-num {
+      font-family: var(--mono); color: var(--muted); display: inline-block;
+      width: 10mm; font-size: 9pt;
+    }
+    .toc-print a { color: var(--ink); }
+
+    .chapter { break-before: page; max-width: none; }
+    h1 { font-size: 17pt; }
+    h2 { font-size: 13pt; margin: 20pt 0 8pt; padding-top: 12pt; }
+    h3 { font-size: 11pt; margin: 14pt 0 6pt; }
+    h4 { font-size: 10.2pt; margin: 11pt 0 5pt; }
+    p { margin-bottom: 8pt; }
+    li { margin-bottom: 3pt; }
+    pre {
+      font-size: 8pt; line-height: 1.55; padding: 8pt 10pt; margin-bottom: 10pt;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    table { font-size: 8.2pt; }
+    th, td { padding: 4pt 6pt; }
+    thead { display: table-header-group; }
+    tr { break-inside: avoid; }
+    .callout { font-size: 8.6pt; padding: 8pt 10pt 8pt 30pt; margin-bottom: 10pt; }
+    .co-note::before, .co-tip::before { top: 7pt; left: 8pt; font-size: 7pt; }
+    details.acc { break-inside: avoid; }
+    details.acc summary { padding: 7pt 10pt; font-size: 9.2pt; }
+    .acc-body { padding: 0 10pt 8pt; }
+    a.card { break-inside: avoid; padding: 8pt 10pt; }
+    .card-title { font-size: 9.2pt; }
+    .card-text { font-size: 8.2pt; }
+    .chap-eyebrow { font-size: 7pt; margin-bottom: 6pt; }
+    .chap-desc { font-size: 8.4pt; }
+    h2, h3, h4 { break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="side-brand">Claude 提示词工程指南</div>
+  <div class="side-brand-sub">platform.claude.com · 中文翻译</div>
+  {{SIDEBAR}}
+</nav>
+
+<main class="content">
+
+  <div class="cover">
+    <p class="cover-brand">ANTHROPIC · CLAUDE PLATFORM 文档中文翻译</p>
+    <h1>Claude 提示词工程指南</h1>
+    <p class="cover-sub">Prompt Engineering — 十章合集</p>
+    <p class="cover-meta">
+      来源：platform.claude.com/docs/en/build-with-claude/prompt-engineering<br>
+      章节：概览 · 提示词最佳实践 · 8 篇模型专属提示指南<br>
+      翻译时间：2026-11 · 代码示例保留英文原文
+    </p>
+  </div>
+
+  <div class="toc-print">
+    <h2>目录</h2>
+    <ol>{{TOC}}</ol>
+  </div>
+
+{{CONTENT}}
+
+</main>
+
+</body>
+</html>

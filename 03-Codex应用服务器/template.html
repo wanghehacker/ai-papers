@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Codex App Server · ChatGPT Learn（中文翻译）</title>
+<style>
+  :root {
+    --text: #0d0d0d;
+    --text-2: #424242;
+    --text-3: #6e6e73;
+    --text-4: #85858b;
+    --border: #ececec;
+    --border-2: #e0e0e0;
+    --surface: #fafafa;
+    --code-bg: #f6f6f6;
+    --inline-code-bg: #f0f1f3;
+    --active-bg: #ececec;
+    --hover-bg: #f0f0f0;
+    --c-default: #24292e;
+    --c-blue: #005cc5;
+    --c-str: #032f62;
+    --c-red: #d73a49;
+    --c-purple: #6f42c1;
+    --c-orange: #e36209;
+    --c-comment: #6a737d;
+    --font-sans: -apple-system, "OpenAI Sans", "SF Pro SC", "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    --font-mono: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    color: var(--text);
+    background: #fff;
+    font-size: 15.5px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  a { color: var(--text); text-decoration: underline; text-decoration-color: rgba(13,13,13,.35); text-underline-offset: 3px; }
+  a:hover { text-decoration-color: currentColor; }
+
+  /* ── Header ── */
+  .site-header {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; gap: 28px;
+    height: 58px; padding: 0 28px;
+    background: #fff; border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .brand:hover { text-decoration: none; }
+  .brand svg { display: block; }
+  .brand-name { font-size: 15px; font-weight: 600; letter-spacing: .1px; }
+  .header-nav { display: flex; align-items: center; gap: 4px; }
+  .header-nav a {
+    font-size: 14px; color: var(--text-2); text-decoration: none;
+    padding: 6px 12px; border-radius: 8px;
+  }
+  .header-nav a:hover { color: var(--text); background: var(--hover-bg); }
+  .header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .search-pill {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13.5px; color: var(--text-4);
+    border: 1px solid var(--border-2); border-radius: 999px;
+    padding: 7px 14px; min-width: 170px;
+  }
+  .search-pill .kbd { margin-left: auto; font-size: 11.5px; border: 1px solid var(--border); border-radius: 5px; padding: 0 5px; color: var(--text-4); font-family: var(--font-mono); }
+  .btn-dashboard {
+    font-size: 13.5px; font-weight: 500; color: #fff; text-decoration: none;
+    background: var(--text); border-radius: 999px; padding: 8px 16px;
+  }
+  .btn-dashboard:hover { text-decoration: none; background: #262626; }
+  .btn-try {
+    font-size: 13.5px; font-weight: 500; color: var(--text); text-decoration: none;
+    border: 1px solid var(--border-2); border-radius: 999px; padding: 7px 15px;
+  }
+  .btn-try:hover { text-decoration: none; background: var(--hover-bg); }
+
+  /* ── Layout ── */
+  .page { display: flex; max-width: 1360px; margin: 0 auto; }
+
+  .sidebar {
+    width: 264px; flex-shrink: 0;
+    position: sticky; top: 58px;
+    height: calc(100vh - 58px);
+    overflow-y: auto;
+    padding: 24px 14px 48px 20px;
+    border-right: 1px solid var(--border);
+    scrollbar-width: thin;
+  }
+  .side-section { font-size: 13.5px; font-weight: 600; color: var(--text); padding: 14px 12px 6px; }
+  .side-link {
+    display: block; font-size: 13.5px; color: var(--text-2); text-decoration: none;
+    padding: 6px 12px; border-radius: 8px; line-height: 1.45;
+  }
+  .side-link:hover { color: var(--text); background: var(--hover-bg); text-decoration: none; }
+  .side-link.active { color: var(--text); background: var(--active-bg); font-weight: 500; }
+
+  .main { flex: 1; min-width: 0; padding: 44px 48px 96px; }
+  .article { max-width: 748px; }
+
+  .doc-eyebrow { font-size: 12.5px; font-weight: 600; letter-spacing: .08em; color: var(--text-4); text-transform: uppercase; margin: 0 0 10px; }
+  h1 { font-size: 30px; line-height: 1.25; font-weight: 650; letter-spacing: -.01em; margin: 0 0 10px; }
+  .doc-subtitle { font-size: 16.5px; line-height: 1.6; color: var(--text-3); margin: 0 0 8px; }
+  .byline { font-size: 12.5px; color: var(--text-4); margin: 6px 0 0; }
+
+  .article blockquote {
+    margin: 18px 0; padding: 2px 0 2px 14px;
+    border-left: 3px solid var(--border-2);
+    color: var(--text-4); font-size: 12.8px; line-height: 1.65;
+  }
+  .article blockquote p { margin: 0; }
+
+  h2 { font-size: 22px; line-height: 1.35; font-weight: 620; letter-spacing: -.005em; margin: 44px 0 14px; }
+  h3 { font-size: 17.5px; line-height: 1.4; font-weight: 600; margin: 34px 0 12px; }
+  h4 { font-size: 15.5px; line-height: 1.45; font-weight: 600; margin: 26px 0 10px; }
+  h2 .anchor, h3 .anchor, h4 .anchor { opacity: 0; margin-left: 6px; text-decoration: none; font-size: .85em; color: var(--text-4); }
+  h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 1; }
+
+  p { line-height: 1.78; margin: 0 0 16px; }
+
+  ul, ol { line-height: 1.78; margin: 0 0 16px; padding-left: 26px; }
+  li { margin: 5px 0; }
+  li > p { margin-bottom: 8px; }
+  li > ul, li > ol { margin-bottom: 4px; }
+
+  code {
+    font-family: var(--font-mono); font-size: .87em;
+    background: var(--inline-code-bg); border-radius: 5px;
+    padding: 1.5px 5px; color: var(--text);
+    word-break: break-word;
+  }
+  .codewrap { position: relative; margin: 16px 0; }
+  .codewrap .copy-btn {
+    position: absolute; top: 8px; right: 8px;
+    font-family: var(--font-sans); font-size: 11.5px; color: var(--text-4);
+    background: #fff; border: 1px solid var(--border-2); border-radius: 6px;
+    padding: 3px 9px; cursor: pointer; opacity: 0; transition: opacity .15s;
+  }
+  .codewrap:hover .copy-btn { opacity: 1; }
+  .codewrap .copy-btn:hover { color: var(--text); }
+  pre {
+    background: var(--code-bg); border-radius: 10px;
+    padding: 14px 18px; margin: 0;
+    overflow-x: auto;
+    font-size: 13px; line-height: 1.68;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  pre code {
+    display: block; background: none; padding: 0; border-radius: 0;
+    font-size: inherit; color: var(--c-default);
+    white-space: pre;
+  }
+  .tk-cmd { color: var(--c-purple); }
+  .tk-flag { color: var(--c-blue); }
+  .tk-str { color: var(--c-str); }
+  .tk-num { color: var(--c-blue); }
+  .tk-kw { color: var(--c-red); }
+  .tk-fn { color: var(--c-purple); }
+  .tk-var { color: var(--c-orange); }
+  .tk-cmt { color: var(--c-comment); }
+
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+  th, td { border: 1px solid var(--border); padding: 8px 13px; text-align: left; line-height: 1.6; vertical-align: top; }
+  th { background: var(--surface); font-weight: 600; }
+  td code, th code { white-space: nowrap; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 36px 0; }
+
+  .callout {
+    display: flex; gap: 14px; align-items: flex-start;
+    border: 1px solid var(--border-2); border-radius: 12px;
+    background: var(--surface);
+    padding: 15px 18px; margin: 20px 0;
+    font-size: 14px; line-height: 1.7;
+  }
+  .callout .ico { flex-shrink: 0; margin-top: 3px; color: var(--text-2); }
+  .callout p { margin: 0 0 8px; font-size: 14px; line-height: 1.7; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .article-footer {
+    margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--border);
+    font-size: 13px; color: var(--text-4); line-height: 1.7;
+  }
+
+  @media (max-width: 1020px) {
+    .sidebar { display: none; }
+    .header-nav { display: none; }
+    .main { padding: 32px 24px 72px; }
+  }
+
+  /* ── Print ── */
+  @page { size: A4; margin: 15mm 14mm 17mm; }
+  @media print {
+    .site-header, .sidebar, .copy-btn, .anchor { display: none !important; }
+    body { font-size: 10.5pt; }
+    .page { display: block; max-width: none; }
+    .main { padding: 0; }
+    .article { max-width: none; }
+    h1 { font-size: 19pt; }
+    .doc-subtitle { font-size: 11.5pt; }
+    h2 { font-size: 13.5pt; margin: 22pt 0 8pt; break-after: avoid; }
+    h3 { font-size: 11.5pt; margin: 15pt 0 6pt; break-after: avoid; }
+    h4 { font-size: 10.5pt; margin: 12pt 0 5pt; break-after: avoid; }
+    p { line-height: 1.62; font-size: 10.5pt; }
+    li { line-height: 1.62; font-size: 10.5pt; }
+    pre { font-size: 8pt; line-height: 1.5; padding: 8pt 10pt; border-radius: 6pt; break-inside: auto; }
+    pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+    code { font-size: inherit; }
+    table { font-size: 8.5pt; }
+    th, td { padding: 4pt 6pt; }
+    .callout { break-inside: avoid; padding: 8pt 10pt; }
+    .article blockquote { font-size: 8.5pt; }
+    .article-footer { font-size: 8.5pt; margin-top: 20pt; }
+    a { color: var(--text); }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a class="brand" href="https://learn.chatgpt.com/" aria-label="ChatGPT">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="10.4" fill="#0d0d0d"/>
+      <path d="M9.2 6.6 12 11.4 14.8 6.6M8.2 8.4v7.2M15.8 8.4v7.2M9.2 17.4 12 12.6l2.8 4.8" stroke="#fff" stroke-width="1.25" stroke-linecap="round"/>
+    </svg>
+    <span class="brand-name">ChatGPT</span>
+  </a>
+  <nav class="header-nav">
+    <a href="https://learn.chatgpt.com/">首页</a>
+    <a href="https://learn.chatgpt.com/api">API</a>
+    <a href="https://learn.chatgpt.com/chatgpt">ChatGPT</a>
+    <a href="https://learn.chatgpt.com/resources">资源</a>
+  </nav>
+  <div class="header-actions">
+    <span class="search-pill"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>开始搜索<span class="kbd">⌘K</span></span>
+    <a class="btn-dashboard" href="https://platform.openai.com/">API Dashboard ↗</a>
+    <a class="btn-try" href="https://chatgpt.com/">试试 ChatGPT</a>
+  </div>
+</header>
+
+<div class="page">
+
+  <aside class="sidebar">
+    <div class="side-section">开发工作流</div>
+    <div class="side-section">扩展与自动化</div>
+    <div class="side-section">环境</div>
+    <div class="side-section">Codex Cloud</div>
+    <div class="side-section">用 Codex 构建</div>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/build-skills">构建技能</a>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/annotations-extensibility">标注扩展性</a>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/hooks">Hooks</a>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/codex-sdk">Codex SDK</a>
+    <a class="side-link active" href="https://learn.chatgpt.com/codex/app-server" aria-current="page">App Server</a>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/model-catalogs">模型目录</a>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/github-action">GitHub Action</a>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/cli-customization">CLI 定制化</a>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/developer-commands">开发者命令</a>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/developer-settings">开发者设置</a>
+    <div class="side-section">第三方集成</div>
+    <div class="side-section">参考手册</div>
+  </aside>
+
+  <main class="main">
+    <article class="article">
+      <p class="doc-eyebrow">用 Codex 构建 · App Server</p>
+      <h1>Codex App Server</h1>
+      <p class="doc-subtitle">通过 app-server 协议将 Codex 嵌入你的产品</p>
+      <p class="byline">译自 <a href="https://learn.chatgpt.com/docs/app-server">learn.chatgpt.com/docs/app-server</a>（OpenAI 官方文档，中文翻译）</p>
+{{CONTENT}}
+      <footer class="article-footer">
+        本页为社区中文翻译，原文版权归 OpenAI 所有，以<a href="https://learn.chatgpt.com/docs/app-server">官方英文页面</a>为准。
+        中英对照 Markdown（<code>app-server.en.md</code> / <code>app-server.zh.md</code>）见本仓库 <code>03-Codex应用服务器/</code> 目录。
+      </footer>
+    </article>
+  </main>
+
+</div>
+
+<script>
+document.querySelectorAll('.codewrap').forEach(function (w) {
+  var btn = w.querySelector('.copy-btn');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    var code = w.querySelector('pre code');
+    navigator.clipboard.writeText(code.innerText).then(function () {
+      btn.textContent = '已复制';
+      setTimeout(function () { btn.textContent = '复制'; }, 1500);
+    });
+  });
+});
+</script>
+</body>
+</html>

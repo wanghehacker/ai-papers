@@ -1,0 +1,2163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Codex App Server · ChatGPT Learn（中文翻译）</title>
+<style>
+  :root {
+    --text: #0d0d0d;
+    --text-2: #424242;
+    --text-3: #6e6e73;
+    --text-4: #85858b;
+    --border: #ececec;
+    --border-2: #e0e0e0;
+    --surface: #fafafa;
+    --code-bg: #f6f6f6;
+    --inline-code-bg: #f0f1f3;
+    --active-bg: #ececec;
+    --hover-bg: #f0f0f0;
+    --c-default: #24292e;
+    --c-blue: #005cc5;
+    --c-str: #032f62;
+    --c-red: #d73a49;
+    --c-purple: #6f42c1;
+    --c-orange: #e36209;
+    --c-comment: #6a737d;
+    --font-sans: -apple-system, "OpenAI Sans", "SF Pro SC", "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    --font-mono: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    color: var(--text);
+    background: #fff;
+    font-size: 15.5px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  a { color: var(--text); text-decoration: underline; text-decoration-color: rgba(13,13,13,.35); text-underline-offset: 3px; }
+  a:hover { text-decoration-color: currentColor; }
+
+  /* ── Header ── */
+  .site-header {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; gap: 28px;
+    height: 58px; padding: 0 28px;
+    background: #fff; border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .brand:hover { text-decoration: none; }
+  .brand svg { display: block; }
+  .brand-name { font-size: 15px; font-weight: 600; letter-spacing: .1px; }
+  .header-nav { display: flex; align-items: center; gap: 4px; }
+  .header-nav a {
+    font-size: 14px; color: var(--text-2); text-decoration: none;
+    padding: 6px 12px; border-radius: 8px;
+  }
+  .header-nav a:hover { color: var(--text); background: var(--hover-bg); }
+  .header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .search-pill {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13.5px; color: var(--text-4);
+    border: 1px solid var(--border-2); border-radius: 999px;
+    padding: 7px 14px; min-width: 170px;
+  }
+  .search-pill .kbd { margin-left: auto; font-size: 11.5px; border: 1px solid var(--border); border-radius: 5px; padding: 0 5px; color: var(--text-4); font-family: var(--font-mono); }
+  .btn-dashboard {
+    font-size: 13.5px; font-weight: 500; color: #fff; text-decoration: none;
+    background: var(--text); border-radius: 999px; padding: 8px 16px;
+  }
+  .btn-dashboard:hover { text-decoration: none; background: #262626; }
+  .btn-try {
+    font-size: 13.5px; font-weight: 500; color: var(--text); text-decoration: none;
+    border: 1px solid var(--border-2); border-radius: 999px; padding: 7px 15px;
+  }
+  .btn-try:hover { text-decoration: none; background: var(--hover-bg); }
+
+  /* ── Layout ── */
+  .page { display: flex; max-width: 1360px; margin: 0 auto; }
+
+  .sidebar {
+    width: 264px; flex-shrink: 0;
+    position: sticky; top: 58px;
+    height: calc(100vh - 58px);
+    overflow-y: auto;
+    padding: 24px 14px 48px 20px;
+    border-right: 1px solid var(--border);
+    scrollbar-width: thin;
+  }
+  .side-section { font-size: 13.5px; font-weight: 600; color: var(--text); padding: 14px 12px 6px; }
+  .side-link {
+    display: block; font-size: 13.5px; color: var(--text-2); text-decoration: none;
+    padding: 6px 12px; border-radius: 8px; line-height: 1.45;
+  }
+  .side-link:hover { color: var(--text); background: var(--hover-bg); text-decoration: none; }
+  .side-link.active { color: var(--text); background: var(--active-bg); font-weight: 500; }
+
+  .main { flex: 1; min-width: 0; padding: 44px 48px 96px; }
+  .article { max-width: 748px; }
+
+  .doc-eyebrow { font-size: 12.5px; font-weight: 600; letter-spacing: .08em; color: var(--text-4); text-transform: uppercase; margin: 0 0 10px; }
+  h1 { font-size: 30px; line-height: 1.25; font-weight: 650; letter-spacing: -.01em; margin: 0 0 10px; }
+  .doc-subtitle { font-size: 16.5px; line-height: 1.6; color: var(--text-3); margin: 0 0 8px; }
+  .byline { font-size: 12.5px; color: var(--text-4); margin: 6px 0 0; }
+
+  .article blockquote {
+    margin: 18px 0; padding: 2px 0 2px 14px;
+    border-left: 3px solid var(--border-2);
+    color: var(--text-4); font-size: 12.8px; line-height: 1.65;
+  }
+  .article blockquote p { margin: 0; }
+
+  h2 { font-size: 22px; line-height: 1.35; font-weight: 620; letter-spacing: -.005em; margin: 44px 0 14px; }
+  h3 { font-size: 17.5px; line-height: 1.4; font-weight: 600; margin: 34px 0 12px; }
+  h4 { font-size: 15.5px; line-height: 1.45; font-weight: 600; margin: 26px 0 10px; }
+  h2 .anchor, h3 .anchor, h4 .anchor { opacity: 0; margin-left: 6px; text-decoration: none; font-size: .85em; color: var(--text-4); }
+  h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 1; }
+
+  p { line-height: 1.78; margin: 0 0 16px; }
+
+  ul, ol { line-height: 1.78; margin: 0 0 16px; padding-left: 26px; }
+  li { margin: 5px 0; }
+  li > p { margin-bottom: 8px; }
+  li > ul, li > ol { margin-bottom: 4px; }
+
+  code {
+    font-family: var(--font-mono); font-size: .87em;
+    background: var(--inline-code-bg); border-radius: 5px;
+    padding: 1.5px 5px; color: var(--text);
+    word-break: break-word;
+  }
+  .codewrap { position: relative; margin: 16px 0; }
+  .codewrap .copy-btn {
+    position: absolute; top: 8px; right: 8px;
+    font-family: var(--font-sans); font-size: 11.5px; color: var(--text-4);
+    background: #fff; border: 1px solid var(--border-2); border-radius: 6px;
+    padding: 3px 9px; cursor: pointer; opacity: 0; transition: opacity .15s;
+  }
+  .codewrap:hover .copy-btn { opacity: 1; }
+  .codewrap .copy-btn:hover { color: var(--text); }
+  pre {
+    background: var(--code-bg); border-radius: 10px;
+    padding: 14px 18px; margin: 0;
+    overflow-x: auto;
+    font-size: 13px; line-height: 1.68;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  pre code {
+    display: block; background: none; padding: 0; border-radius: 0;
+    font-size: inherit; color: var(--c-default);
+    white-space: pre;
+  }
+  .tk-cmd { color: var(--c-purple); }
+  .tk-flag { color: var(--c-blue); }
+  .tk-str { color: var(--c-str); }
+  .tk-num { color: var(--c-blue); }
+  .tk-kw { color: var(--c-red); }
+  .tk-fn { color: var(--c-purple); }
+  .tk-var { color: var(--c-orange); }
+  .tk-cmt { color: var(--c-comment); }
+
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+  th, td { border: 1px solid var(--border); padding: 8px 13px; text-align: left; line-height: 1.6; vertical-align: top; }
+  th { background: var(--surface); font-weight: 600; }
+  td code, th code { white-space: nowrap; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 36px 0; }
+
+  .callout {
+    display: flex; gap: 14px; align-items: flex-start;
+    border: 1px solid var(--border-2); border-radius: 12px;
+    background: var(--surface);
+    padding: 15px 18px; margin: 20px 0;
+    font-size: 14px; line-height: 1.7;
+  }
+  .callout .ico { flex-shrink: 0; margin-top: 3px; color: var(--text-2); }
+  .callout p { margin: 0 0 8px; font-size: 14px; line-height: 1.7; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .article-footer {
+    margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--border);
+    font-size: 13px; color: var(--text-4); line-height: 1.7;
+  }
+
+  @media (max-width: 1020px) {
+    .sidebar { display: none; }
+    .header-nav { display: none; }
+    .main { padding: 32px 24px 72px; }
+  }
+
+  /* ── Print ── */
+  @page { size: A4; margin: 15mm 14mm 17mm; }
+  @media print {
+    .site-header, .sidebar, .copy-btn, .anchor { display: none !important; }
+    body { font-size: 10.5pt; }
+    .page { display: block; max-width: none; }
+    .main { padding: 0; }
+    .article { max-width: none; }
+    h1 { font-size: 19pt; }
+    .doc-subtitle { font-size: 11.5pt; }
+    h2 { font-size: 13.5pt; margin: 22pt 0 8pt; break-after: avoid; }
+    h3 { font-size: 11.5pt; margin: 15pt 0 6pt; break-after: avoid; }
+    h4 { font-size: 10.5pt; margin: 12pt 0 5pt; break-after: avoid; }
+    p { line-height: 1.62; font-size: 10.5pt; }
+    li { line-height: 1.62; font-size: 10.5pt; }
+    pre { font-size: 8pt; line-height: 1.5; padding: 8pt 10pt; border-radius: 6pt; break-inside: auto; }
+    pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+    code { font-size: inherit; }
+    table { font-size: 8.5pt; }
+    th, td { padding: 4pt 6pt; }
+    .callout { break-inside: avoid; padding: 8pt 10pt; }
+    .article blockquote { font-size: 8.5pt; }
+    .article-footer { font-size: 8.5pt; margin-top: 20pt; }
+    a { color: var(--text); }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a class="brand" href="https://learn.chatgpt.com/" aria-label="ChatGPT">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="10.4" fill="#0d0d0d"/>
+      <path d="M9.2 6.6 12 11.4 14.8 6.6M8.2 8.4v7.2M15.8 8.4v7.2M9.2 17.4 12 12.6l2.8 4.8" stroke="#fff" stroke-width="1.25" stroke-linecap="round"/>
+    </svg>
+    <span class="brand-name">ChatGPT</span>
+  </a>
+  <nav class="header-nav">
+    <a href="https://learn.chatgpt.com/">首页</a>
+    <a href="https://learn.chatgpt.com/api">API</a>
+    <a href="https://learn.chatgpt.com/chatgpt">ChatGPT</a>
+    <a href="https://learn.chatgpt.com/resources">资源</a>
+  </nav>
+  <div class="header-actions">
+    <span class="search-pill"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>开始搜索<span class="kbd">⌘K</span></span>
+    <a class="btn-dashboard" href="https://platform.openai.com/">API Dashboard ↗</a>
+    <a class="btn-try" href="https://chatgpt.com/">试试 ChatGPT</a>
+  </div>
+</header>
+
+<div class="page">
+
+  <aside class="sidebar">
+    <div class="side-section">开发工作流</div>
+    <div class="side-section">扩展与自动化</div>
+    <div class="side-section">环境</div>
+    <div class="side-section">Codex Cloud</div>
+    <div class="side-section">用 Codex 构建</div>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/build-skills">构建技能</a>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/annotations-extensibility">标注扩展性</a>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/hooks">Hooks</a>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/codex-sdk">Codex SDK</a>
+    <a class="side-link active" href="https://learn.chatgpt.com/codex/app-server" aria-current="page">App Server</a>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/model-catalogs">模型目录</a>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/github-action">GitHub Action</a>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/cli-customization">CLI 定制化</a>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/developer-commands">开发者命令</a>
+    <a class="side-link" href="https://learn.chatgpt.com/codex/developer-settings">开发者设置</a>
+    <div class="side-section">第三方集成</div>
+    <div class="side-section">参考手册</div>
+  </aside>
+
+  <main class="main">
+    <article class="article">
+      <p class="doc-eyebrow">用 Codex 构建 · App Server</p>
+      <h1>Codex App Server</h1>
+      <p class="doc-subtitle">通过 app-server 协议将 Codex 嵌入你的产品</p>
+      <p class="byline">译自 <a href="https://learn.chatgpt.com/docs/app-server">learn.chatgpt.com/docs/app-server</a>（OpenAI 官方文档，中文翻译）</p>
+<blockquote>
+<p>完整的文档索引请参见 <a href="https://learn.chatgpt.com/llms.txt">llms.txt</a>。在页面 URL 末尾追加 <code>.md</code> 即可获取文档页面的 Markdown 版本。</p>
+</blockquote>
+<p>Codex app-server 是 Codex 用来驱动富客户端（例如 Codex VS Code 扩展）的接口。当你希望在自己的产品中实现深度集成——身份认证、对话历史、审批以及流式传输的智能体（agent）事件——时，可以使用它。app-server 的实现已在 Codex GitHub 仓库中开源（<a href="https://github.com/openai/codex/tree/main/codex-rs/app-server">openai/codex/codex-rs/app-server</a>）。完整的 Codex 开源组件列表请参见 <a href="https://learn.chatgpt.com/docs/open-source">Open Source</a> 页面。</p>
+<div class="callout"><svg class="ico" width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 12a1 1 0 1 0-2 0v4a1 1 0 1 0 2 0v-4Zm-1-2.5A1.25 1.25 0 1 0 12 7a1.25 1.25 0 0 0 0 2.5Z"/><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2ZM4 12a8 8 0 1 1 16 0 8 8 0 0 1-16 0Z" clip-rule="evenodd"/></svg><div class="callout-body"><p>如果你要自动化任务或在 CI 中运行 Codex，请改用
+  <a href="https://learn.chatgpt.com/docs/codex-sdk">Codex SDK</a>。</p></div></div>
+<h2 id="codex-app-server">连接 CLI 终端 UI<a class="anchor" href="#codex-app-server">#</a></h2>
+<p>远程终端 UI 模式让你可以在一台机器上运行 app-server，并从另一台机器连接
+Codex CLI 终端界面。启动一个 WebSocket 监听器：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-bash"><span class="tk-cmd">codex</span> <span class="tk-str">app-server</span> <span class="tk-flag">--listen</span> <span class="tk-str">ws://127.0.0.1:4500</span>
+</code></pre></div>
+<p>然后连接终端 UI：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-bash"><span class="tk-cmd">codex</span> <span class="tk-flag">--remote</span> <span class="tk-str">ws://127.0.0.1:4500</span>
+</code></pre></div>
+<p>对于非本地连接，请配置 WebSocket 身份认证，并将连接置于 TLS 保护之下。将
+bearer token 存储在环境变量中并传递其名称，
+而不是把 token 放在命令行上：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-bash"><span class="tk-cmd">export</span> <span class="tk-str">CODEX_REMOTE_TOKEN=&quot;$(cat</span> <span class="tk-str">&quot;$HOME/.codex/app-server-token&quot;</span><span class="tk-str">)&quot;</span>
+<span class="tk-cmd">codex</span> <span class="tk-flag">--remote</span> <span class="tk-str">wss://remote-host:4500</span> <span class="tk-str">\</span>
+  <span class="tk-flag">--remote-auth-token-env</span> <span class="tk-str">CODEX_REMOTE_TOKEN</span>
+</code></pre></div>
+<p><code>--remote</code> 选项接受 <code>ws://</code>、<code>wss://</code>、<code>unix://</code> 和
+<code>unix://PATH</code> 端点。仅在 localhost 或 SSH
+端口转发连接上使用普通 WebSocket。</p>
+<h2 id="connect-the-cli-terminal-ui">连接远程 Code Mode 主机<a class="anchor" href="#connect-the-cli-terminal-ui">#</a></h2>
+<p>默认情况下，app-server 会启动一个本地 Code Mode 主机。若要在同一 app-server
+进程内的多个线程（thread）之间共享一台远程主机，请把远程主机的 HTTP/2
+gRPC 端点传给 <code>--code-mode-host</code>。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-bash"><span class="tk-cmd">codex</span> <span class="tk-str">app-server</span> <span class="tk-flag">--code-mode-host</span> <span class="tk-str">https://code-mode.example.com</span>
+</code></pre></div>
+<p>对远程主机使用 HTTPS，以保护工具参数和结果。仅可在回环地址上
+或通过安全隧道使用 HTTP。该 URL 接受主机名和可选端口。
+请省略凭据、路径、查询字符串和片段。使用
+<code>--listen</code> 配置从客户端到 app-server 的独立连接。</p>
+<h2 id="connect-a-remote-code-mode-host">协议<a class="anchor" href="#connect-a-remote-code-mode-host">#</a></h2>
+<p>与 <a href="https://modelcontextprotocol.io/">MCP</a> 类似，<code>codex app-server</code> 支持使用 JSON-RPC 2.0 消息进行双向通信（在线路上传输时省略 <code>"jsonrpc":"2.0"</code> 头）。</p>
+<p>支持的传输方式：</p>
+<ul>
+<li><code>stdio</code>（<code>--listen stdio://</code>，默认）：换行分隔的 JSON（JSONL）。</li>
+<li><code>websocket</code>（<code>--listen ws://IP:PORT</code>，实验性且不受支持）：每个 WebSocket
+  文本帧承载一条 JSON-RPC 消息。</li>
+<li>Unix socket（<code>--listen unix://</code> 或 <code>--listen unix://PATH</code>）：通过 Codex 默认的
+  app-server 控制 socket 或自定义 Unix socket 路径建立
+  WebSocket 连接，采用标准 HTTP Upgrade 握手。</li>
+<li><code>off</code>（<code>--listen off</code>）：不暴露本地传输。</li>
+</ul>
+<p>当你以 <code>--listen ws://IP:PORT</code> 运行时，同一监听器还会提供基本的
+HTTP 健康探测：</p>
+<ul>
+<li><code>GET /readyz</code> 在监听器开始接受新连接后返回 <code>200 OK</code>。</li>
+<li>当请求不包含 <code>Origin</code> 头时，<code>GET /healthz</code>
+  返回 <code>200 OK</code>。</li>
+<li>带有 <code>Origin</code> 头的请求会被以 <code>403 Forbidden</code> 拒绝。</li>
+</ul>
+<p>WebSocket 传输是实验性的且不受支持。诸如 <code>ws://127.0.0.1:PORT</code>
+这样的本地监听器适用于 localhost 和 SSH 端口转发场景。在 rollout
+期间，非回环 WebSocket 监听器目前默认允许未认证的连接，因此
+在远程暴露此类监听器之前，请先配置
+WebSocket 认证。</p>
+<p>支持的 WebSocket 认证标志：</p>
+<ul>
+<li><code>--ws-auth capability-token --ws-token-file /absolute/path</code></li>
+<li><code>--ws-auth capability-token --ws-token-sha256 HEX</code></li>
+<li><code>--ws-auth signed-bearer-token --ws-shared-secret-file /absolute/path</code></li>
+</ul>
+<p>对于签名的 bearer token，你还可以设置 <code>--ws-issuer</code>、<code>--ws-audience</code> 和
+<code>--ws-max-clock-skew-seconds</code>。客户端在 WebSocket 握手期间以
+<code>Authorization: Bearer &lt;token&gt;</code> 形式出示凭据，app-server 会在 JSON-RPC
+<code>initialize</code> 之前强制执行认证。</p>
+<p>优先使用 <code>--ws-token-file</code>，而不是在命令行上传递原始 bearer token。仅当
+客户端把原始高熵 token 保存在单独的本地机密存储中时，才使用
+<code>--ws-token-sha256</code>；哈希仅作校验之用，客户端仍然
+需要原始 token。</p>
+<p>在 WebSocket 模式下，app-server 使用有界队列。当请求入口队列已满时，
+服务器会以 JSON-RPC 错误码 <code>-32001</code> 和消息
+<code>"Server overloaded; retry later."</code> 拒绝新请求。客户端应采用指数递增
+延迟加抖动的方式进行重试。</p>
+<h2 id="protocol">消息结构（schema）<a class="anchor" href="#protocol">#</a></h2>
+<p>请求包含 <code>method</code>、<code>params</code> 和 <code>id</code>。</p>
+<p>本文示例使用 <a href="https://learn.chatgpt.com/docs/models#gpt-6.1-sol">GPT-6.1 Sol</a>，该模型要求已登录的账户或工作区
+具有相应的访问权限。如有需要，可使用
+<a href="#list-models-modellist"><code>model/list</code></a> 选择一个可用的模型。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/start&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">10</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;model&quot;</span>: <span class="tk-str">&quot;gpt-6.1-sol&quot;</span> } }
+</code></pre></div>
+<p>响应会回显 <code>id</code>，并附带 <code>result</code> 或 <code>error</code>：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">10</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;thread&quot;</span>: { <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span> } } }
+</code></pre></div>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">10</span>, <span class="tk-num">&quot;error&quot;</span>: { <span class="tk-num">&quot;code&quot;</span>: <span class="tk-num">123</span>, <span class="tk-num">&quot;message&quot;</span>: <span class="tk-str">&quot;Something went wrong&quot;</span> } }
+</code></pre></div>
+<p>通知省略 <code>id</code>，只使用 <code>method</code> 和 <code>params</code>：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;turn/started&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;turn&quot;</span>: { <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;turn_456&quot;</span> } } }
+</code></pre></div>
+<p>你可以从 CLI 生成 TypeScript schema 或 JSON Schema 包。每份输出都特定于你所运行的
+Codex 版本，因此生成的工件与该版本完全一致：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-bash"><span class="tk-cmd">codex</span> <span class="tk-str">app-server</span> <span class="tk-str">generate-ts</span> <span class="tk-flag">--out</span> <span class="tk-str">./schemas</span>
+<span class="tk-cmd">codex</span> <span class="tk-str">app-server</span> <span class="tk-str">generate-json-schema</span> <span class="tk-flag">--out</span> <span class="tk-str">./schemas</span>
+</code></pre></div>
+<h2 id="message-schema">快速上手<a class="anchor" href="#message-schema">#</a></h2>
+<ol>
+<li>使用 <code>codex app-server</code>（默认 stdio 传输）、
+   <code>codex app-server --listen ws://127.0.0.1:4500</code>（TCP WebSocket）或
+   <code>codex app-server --listen unix://</code>（默认 Unix socket）启动服务器。</li>
+<li>通过所选传输方式连接客户端，然后发送 <code>initialize</code>，随后发送 <code>initialized</code> 通知。</li>
+<li>启动一个线程和一个轮次（turn），然后持续从活动传输流中读取通知。</li>
+</ol>
+<p>示例（Node.js / TypeScript）：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-typescript"><span class="tk-kw">import</span> { spawn } <span class="tk-kw">from</span> <span class="tk-str">&quot;node:child_process&quot;</span>;
+<span class="tk-kw">import</span> readline <span class="tk-kw">from</span> <span class="tk-str">&quot;node:readline&quot;</span>;
+<span class="tk-kw">const</span> proc = <span class="tk-fn">spawn</span>(<span class="tk-str">&quot;codex&quot;</span>, [<span class="tk-str">&quot;app-server&quot;</span>], {
+  stdio: [<span class="tk-str">&quot;pipe&quot;</span>, <span class="tk-str">&quot;pipe&quot;</span>, <span class="tk-str">&quot;inherit&quot;</span>],
+});
+<span class="tk-kw">const</span> rl = readline.<span class="tk-fn">createInterface</span>({ input: proc.stdout });
+<span class="tk-kw">const</span> send = (message: <span class="tk-kw">unknown</span>) =&gt; {
+  proc.stdin.<span class="tk-fn">write</span>(<span class="tk-str">`${JSON.stringify(message)}\n`</span>);
+};
+<span class="tk-kw">let</span> threadId: string | <span class="tk-kw">null</span> = <span class="tk-kw">null</span>;
+rl.<span class="tk-fn">on</span>(<span class="tk-str">&quot;line&quot;</span>, (line) =&gt; {
+  <span class="tk-kw">const</span> msg = <span class="tk-fn">JSON</span>.<span class="tk-fn">parse</span>(line) <span class="tk-kw">as</span> any;
+  console.<span class="tk-fn">log</span>(<span class="tk-str">&quot;server:&quot;</span>, msg);
+  <span class="tk-kw">if</span> (msg.id === <span class="tk-num">0</span> &amp;&amp; msg.result) {
+    <span class="tk-fn">send</span>({ method: <span class="tk-str">&quot;initialized&quot;</span>, params: {} });
+    <span class="tk-fn">send</span>({
+      method: <span class="tk-str">&quot;thread/start&quot;</span>,
+      id: <span class="tk-num">1</span>,
+      params: { model: <span class="tk-str">&quot;gpt-6.1-sol&quot;</span> },
+    });
+  }
+  <span class="tk-kw">if</span> (msg.method === <span class="tk-str">&quot;turn/completed&quot;</span>) {
+    proc.stdin.<span class="tk-fn">end</span>();
+    rl.<span class="tk-fn">close</span>();
+  }
+  <span class="tk-kw">if</span> (msg.error) {
+    console.<span class="tk-fn">error</span>(msg.error);
+    process.exitCode = <span class="tk-num">1</span>;
+    proc.stdin.<span class="tk-fn">end</span>();
+    rl.<span class="tk-fn">close</span>();
+  }
+  <span class="tk-kw">if</span> (msg.id === <span class="tk-num">1</span> &amp;&amp; msg.result?.thread?.id &amp;&amp; !threadId) {
+    threadId = msg.result.thread.id;
+    <span class="tk-fn">send</span>({
+      method: <span class="tk-str">&quot;turn/start&quot;</span>,
+      id: <span class="tk-num">2</span>,
+      params: {
+        threadId,
+        input: [{ <span class="tk-kw">type</span>: <span class="tk-str">&quot;text&quot;</span>, text: <span class="tk-str">&quot;Summarize this repo.&quot;</span> }],
+      },
+    });
+  }
+});
+<span class="tk-fn">send</span>({
+  method: <span class="tk-str">&quot;initialize&quot;</span>,
+  id: <span class="tk-num">0</span>,
+  params: {
+    clientInfo: {
+      name: <span class="tk-str">&quot;my_product&quot;</span>,
+      title: <span class="tk-str">&quot;My Product&quot;</span>,
+      version: <span class="tk-str">&quot;0.1.0&quot;</span>,
+    },
+  },
+});
+proc.<span class="tk-fn">on</span>(<span class="tk-str">&quot;error&quot;</span>, (error) =&gt; {
+  console.<span class="tk-fn">error</span>(error);
+  process.exitCode = <span class="tk-num">1</span>;
+  rl.<span class="tk-fn">close</span>();
+});
+</code></pre></div>
+<h2 id="getting-started">核心原语<a class="anchor" href="#getting-started">#</a></h2>
+<ul>
+<li><strong>线程（Thread）</strong>：用户与 Codex 智能体之间的一段对话。线程包含轮次。</li>
+<li><strong>轮次（Turn）</strong>：一次用户请求以及随后的智能体工作。轮次包含条目（item），并流式传输增量更新。</li>
+<li><strong>条目（Item）</strong>：输入或输出的一个单元（用户消息、智能体消息、命令运行、文件变更、工具调用等）。</li>
+</ul>
+<p>使用线程 API 创建、列出或归档对话。通过轮次 API 驱动对话，并通过轮次通知流式传输进度。</p>
+<h2 id="core-primitives">生命周期概览<a class="anchor" href="#core-primitives">#</a></h2>
+<ul>
+<li><strong>每连接初始化一次</strong>：打开传输连接后，立即发送携带你客户端元数据的 <code>initialize</code> 请求，然后发出 <code>initialized</code>。在此握手之前，服务器会拒绝该连接上的任何请求。</li>
+<li><strong>启动（或恢复）线程</strong>：调用 <code>thread/start</code> 开始新对话，调用 <code>thread/resume</code> 继续已有对话，或调用 <code>thread/fork</code> 将历史分支到一个新的线程 id。</li>
+<li><strong>开始一个轮次</strong>：以目标 <code>threadId</code> 和用户输入调用 <code>turn/start</code>。可选字段可覆盖模型、工作目录和沙箱策略。</li>
+<li><strong>引导活动轮次</strong>：调用 <code>turn/steer</code>，在不创建新轮次的情况下向当前进行中的轮次追加用户输入。</li>
+<li><strong>流式传输事件</strong>：<code>turn/start</code> 之后，持续读取 stdout 上的通知：<code>thread/archived</code>、<code>thread/unarchived</code>、<code>item/started</code>、<code>item/completed</code>、<code>item/agentMessage/delta</code>、工具进度以及其他更新。</li>
+<li><strong>结束轮次</strong>：当模型完成工作或经过 <code>turn/interrupt</code> 取消后，服务器会发出携带最终状态的 <code>turn/completed</code>。</li>
+</ul>
+<h2 id="lifecycle-overview">初始化<a class="anchor" href="#lifecycle-overview">#</a></h2>
+<p>客户端必须在每条传输连接上、于调用该连接上的任何其他方法之前，恰好发送一次 <code>initialize</code> 请求，然后以 <code>initialized</code> 通知进行确认。在初始化之前发送的请求会收到 <code>Not initialized</code> 错误，而在同一连接上重复调用 <code>initialize</code> 会返回 <code>Already initialized</code>。</p>
+<p>服务器会返回它将呈现给上游服务的用户代理字符串，以及描述运行时目标的 <code>platformFamily</code> 和 <code>platformOs</code> 值。请设置 <code>clientInfo</code> 以标识你的集成。</p>
+<p><code>initialize.params.capabilities</code> 还支持以下客户端能力：</p>
+<ul>
+<li><code>optOutNotificationMethods</code> - 要在此连接上抑制的确切通知方法名。匹配为
+  精确匹配（不支持通配符或前缀）；未知名称会被
+  接受并忽略。</li>
+<li><code>requestAttestation</code> - 选择加入服务器发起的 <code>attestation/generate</code>
+  请求。提供上游证明的桌面主机会以一个
+  不透明的 <code>{ "token": "..." }</code> 值响应。</li>
+<li><code>mcpServerOpenaiFormElicitation</code> - 允许下游 MCP 服务器发送
+  <code>mcpServer/elicitation/request</code> 的 OpenAI 扩展表单变体。</li>
+</ul>
+<p><strong>重要</strong>：请使用 <code>clientInfo.name</code> 为 OpenAI Compliance Logs Platform 标识你的客户端。如果你正在开发面向企业使用的新 Codex 集成，请联系 OpenAI 将其加入已知客户端列表。更多背景信息请参见 <a href="https://chatgpt.com/public/admin/api-reference#tag/Codex">Codex 日志参考</a>。</p>
+<p>示例（来自 Codex VS Code 扩展）：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;initialize&quot;</span>,
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">0</span>,
+  <span class="tk-num">&quot;params&quot;</span>: {
+    <span class="tk-num">&quot;clientInfo&quot;</span>: {
+      <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;codex_vscode&quot;</span>,
+      <span class="tk-num">&quot;title&quot;</span>: <span class="tk-str">&quot;Codex VS Code Extension&quot;</span>,
+      <span class="tk-num">&quot;version&quot;</span>: <span class="tk-str">&quot;0.1.0&quot;</span>
+    }
+  }
+}
+</code></pre></div>
+<p>带通知退出的示例：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;initialize&quot;</span>,
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">1</span>,
+  <span class="tk-num">&quot;params&quot;</span>: {
+    <span class="tk-num">&quot;clientInfo&quot;</span>: {
+      <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;my_client&quot;</span>,
+      <span class="tk-num">&quot;title&quot;</span>: <span class="tk-str">&quot;My Client&quot;</span>,
+      <span class="tk-num">&quot;version&quot;</span>: <span class="tk-str">&quot;0.1.0&quot;</span>
+    },
+    <span class="tk-num">&quot;capabilities&quot;</span>: {
+      <span class="tk-num">&quot;experimentalApi&quot;</span>: <span class="tk-num">true</span>,
+      <span class="tk-num">&quot;optOutNotificationMethods&quot;</span>: [<span class="tk-str">&quot;thread/started&quot;</span>, <span class="tk-str">&quot;item/agentMessage/delta&quot;</span>]
+    }
+  }
+}
+</code></pre></div>
+<h2 id="initialization">实验性 API 选择加入<a class="anchor" href="#initialization">#</a></h2>
+<p>一些 app-server 方法和字段被有意地置于 <code>experimentalApi</code> 能力门控之后。</p>
+<ul>
+<li>省略 <code>capabilities</code>（或将 <code>experimentalApi</code> 设为 <code>false</code>）以停留在稳定的 API 表面上，此时服务器会拒绝实验性方法/字段。</li>
+<li>将 <code>capabilities.experimentalApi</code> 设为 <code>true</code> 以启用实验性方法和字段。</li>
+</ul>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;initialize&quot;</span>,
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">1</span>,
+  <span class="tk-num">&quot;params&quot;</span>: {
+    <span class="tk-num">&quot;clientInfo&quot;</span>: {
+      <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;my_client&quot;</span>,
+      <span class="tk-num">&quot;title&quot;</span>: <span class="tk-str">&quot;My Client&quot;</span>,
+      <span class="tk-num">&quot;version&quot;</span>: <span class="tk-str">&quot;0.1.0&quot;</span>
+    },
+    <span class="tk-num">&quot;capabilities&quot;</span>: {
+      <span class="tk-num">&quot;experimentalApi&quot;</span>: <span class="tk-num">true</span>
+    }
+  }
+}
+</code></pre></div>
+<p>如果客户端在未选择加入的情况下发送实验性方法或字段，app-server 会以下列消息拒绝：</p>
+<p><code>&lt;descriptor&gt; requires experimentalApi capability</code></p>
+<h2 id="experimental-api-opt-in">API 概览<a class="anchor" href="#experimental-api-opt-in">#</a></h2>
+<ul>
+<li><code>thread/start</code> - 创建一个新线程；发出 <code>thread/started</code>，并自动为你订阅该线程的轮次/条目事件。</li>
+<li><code>thread/resume</code> - 按 id 重新打开一个已有线程，使后续的 <code>turn/start</code> 调用追加到该线程。</li>
+<li><code>thread/fork</code> - 通过复制已存储的历史，将一个线程分叉到一个新的线程 id。传入 <code>lastTurnId</code> 可只复制到该轮次为止的历史并省略之后的轮次，或传入 <code>ephemeral: true</code> 创建一个内存中的分叉。为新线程发出 <code>thread/started</code>；返回的线程在可用时包含 <code>forkedFromId</code>。</li>
+<li><code>thread/read</code> - 按 id 读取已存储的线程元数据，而不恢复它。使用 <code>thread/turns/list</code> 和 <code>thread/items/list</code> 加载历史。返回的 <code>thread</code> 对象包含运行时 <code>status</code>。</li>
+<li><code>thread/list</code> - 分页浏览已存储的线程及其运行时状态。参见<a href="#list-threads-with-pagination--filters">分页与过滤器</a>。</li>
+<li><code>thread/turns/list</code> - 分页浏览已存储线程的轮次历史，而不恢复它。<code>itemsView</code> 控制轮次条目是被省略、摘要显示还是完整加载。</li>
+<li><code>thread/items/list</code> - 分页浏览已持久化的线程条目，可选地限定于单个 <code>turnId</code>。活动线程存储必须支持条目分页。</li>
+<li><code>thread/loaded/list</code> - 列出当前加载到内存中的线程 id。</li>
+<li><code>thread/name/set</code> - 为已加载的线程或已持久化的 rollout 设置或更新线程的面向用户名称；发出 <code>thread/name/updated</code>。</li>
+<li><code>thread/goal/set</code> - 为线程设置目标；发出 <code>thread/goal/updated</code>。</li>
+<li><code>thread/goal/get</code> - 读取线程的当前目标。</li>
+<li><code>thread/goal/clear</code> - 清除线程的目标；发出 <code>thread/goal/cleared</code>。</li>
+<li><code>thread/metadata/update</code> - 更新为线程存储的 Git 元数据。</li>
+<li><code>thread/archive</code> - 将线程的日志文件移入已归档目录，并尝试归档尚未归档的派生后代线程日志；成功时返回 <code>{}</code>，并为每个已归档的线程发出 <code>thread/archived</code>。</li>
+<li><code>thread/delete</code> - 永久删除一个已持久化的活动或已归档线程及其所有派生后代线程；成功时返回 <code>{}</code>，并为每个已删除的线程发出 <code>thread/deleted</code>。</li>
+<li><code>thread/unsubscribe</code> - 让此连接退订线程的轮次/条目事件。如果这是最后一个订阅者，服务器会在无订阅者不活动宽限期之后卸载该线程并发出 <code>thread/closed</code>。</li>
+<li><code>thread/unarchive</code> - 将已归档线程的 rollout 恢复到活动会话目录；返回恢复后的 <code>thread</code> 并发出 <code>thread/unarchived</code>。</li>
+<li><code>thread/status/changed</code> - 当已加载线程的运行时 <code>status</code> 发生变化时发出的通知。</li>
+<li><code>thread/compact/start</code> - 为线程触发对话历史压缩（compaction）；立即返回 <code>{}</code>，进度通过 <code>turn/*</code> 和 <code>item/*</code> 通知流式传输。</li>
+<li><code>thread/shellCommand</code> - 针对线程运行一条由用户发起的 shell 命令。该命令在沙箱之外运行、拥有完全访问权限，并且不继承线程的沙箱策略。</li>
+<li><code>thread/backgroundTerminals/clean</code> - 停止一个线程的所有运行中后台终端（实验性；需要 <code>capabilities.experimentalApi</code>）。</li>
+<li><code>thread/backgroundTerminals/list</code> - 列出一个已加载线程的运行中后台终端（实验性；需要 <code>capabilities.experimentalApi</code>）。</li>
+<li><code>thread/backgroundTerminals/terminate</code> - 按 app-server 的 <code>processId</code> 终止一个运行中的后台终端（实验性；需要 <code>capabilities.experimentalApi</code>）。</li>
+<li><code>thread/revert</code> - 从持久化分页线程的历史中移除指定轮次及其之后的所有轮次；返回更新后的元数据和历史游标，然后发出 <code>thread/reverted</code>。</li>
+<li><code>turn/start</code> - 向线程添加用户输入或独立的工具输出，并开始 Codex 生成；响应包含初始 <code>turn</code> 并流式传输事件。对于 <code>collaborationMode</code>，<code>settings.developer_instructions: null</code> 表示“对所选模式使用内置指令”。</li>
+<li><code>thread/inject_items</code> - 向已加载线程的模型可见历史追加原始 Responses API 条目，而不启动用户轮次。</li>
+<li><code>turn/steer</code> - 向线程当前进行中的轮次追加用户输入；返回被接受的 <code>turnId</code>。</li>
+<li><code>turn/interrupt</code> - 请求取消一个进行中的轮次；成功时返回 <code>{}</code>，轮次以 <code>status: "interrupted"</code> 结束。</li>
+<li><code>review/start</code> - 为线程启动 Codex 审查器；发出 <code>enteredReviewMode</code> 和 <code>exitedReviewMode</code> 条目。</li>
+<li><code>command/exec</code> - 在服务器沙箱下运行单条命令，而不启动线程/轮次。</li>
+<li><code>command/exec/write</code> - 向运行中的 <code>command/exec</code> 会话写入 <code>stdin</code> 字节，或关闭 <code>stdin</code>。</li>
+<li><code>command/exec/resize</code> - 调整运行中由 PTY 支撑的 <code>command/exec</code> 会话的大小。</li>
+<li><code>command/exec/terminate</code> - 停止一个运行中的 <code>command/exec</code> 会话。</li>
+<li><code>command/exec/outputDelta</code>（通知）- 针对流式传输的 <code>command/exec</code> 会话发出的 base64 编码 stdout/stderr 数据块。</li>
+<li><code>process/spawn</code> - 在 Codex 沙箱之外启动一个显式进程会话（实验性；需要 <code>capabilities.experimentalApi</code>）。</li>
+<li><code>process/writeStdin</code> - 向运行中的 <code>process/spawn</code> 会话写入 stdin 字节，或关闭 stdin（实验性）。</li>
+<li><code>process/resizePty</code> - 调整运行中由 PTY 支撑的进程会话的大小（实验性）。</li>
+<li><code>process/kill</code> - 终止一个运行中的进程会话（实验性）。</li>
+<li><code>process/outputDelta</code> 和 <code>process/exited</code>（通知）- 针对流式传输的进程输出和进程退出状态发出（实验性）。</li>
+<li><code>model/list</code> - 列出可用模型（设置 <code>includeHidden: true</code> 可包含 <code>hidden: true</code> 的条目），附带推理力度选项、可选的 <code>upgrade</code> 以及 <code>inputModalities</code>。</li>
+<li><code>modelProvider/capabilities/read</code> - 读取模型/提供方组合的提供方能力边界。</li>
+<li><code>experimentalFeature/list</code> - 列出功能标志，附带生命周期阶段元数据和游标分页。</li>
+<li><code>experimentalFeature/enablement/set</code> - 为受支持的功能键（例如 <code>apps</code> 和 <code>plugins</code>）修补内存中的运行时设置。</li>
+<li><code>environment/info</code> - 实验性；连接到一个已配置的执行环境，并返回其 shell 和默认工作目录。</li>
+<li><code>permissionProfile/list</code> - 列出 beta 权限配置文件（permission profile）以及有效需求是否允许使用它们，支持游标分页。</li>
+<li><code>collaborationMode/list</code> - 列出协作模式预设（实验性，无分页）。</li>
+<li><code>skills/list</code> - 列出一个或多个 <code>cwd</code> 值对应的技能（支持 <code>forceReload</code> 和可选的 <code>perCwdExtraUserRoots</code>）。</li>
+<li><code>skills/extraRoots/set</code> - 替换用于发现独立技能的进程级额外根目录，而不将其持久化。</li>
+<li><code>skills/changed</code>（通知）- 当受监视的本地技能文件发生变化时发出。</li>
+<li><code>hooks/list</code> - 列出一个或多个 <code>cwd</code> 值所发现的生命周期钩子。</li>
+<li><code>marketplace/add</code> - 添加一个远程插件市场，并将其持久化到用户的 marketplace 配置中。</li>
+<li><code>marketplace/remove</code> - 移除一个已配置的市场，并在存在时移除其已安装的市场根目录。</li>
+<li><code>marketplace/upgrade</code> - 刷新一个已配置的 Git 市场，或在省略市场名称时刷新所有已配置的 Git 市场。</li>
+<li><code>plugin/list</code> - 开发中；列出已发现的插件市场和插件状态，包括安装/认证策略元数据、市场加载错误、精选插件 id，以及本地、Git、包注册表或远程插件来源元数据。摘要可以包含远程 <code>version</code>、本地 <code>localVersion</code>、结构化的浅色/深色图标，以及 <code>installPolicySource</code>（对于当前的远程条目，它可以是 <code>null</code>、<code>WORKSPACE_SETTING</code> 或 <code>IMPLICIT_CANONICAL_APP</code>）。请勿在生产客户端中调用此方法。</li>
+<li><code>plugin/read</code> - 开发中；按市场路径，或按远程市场名称加插件名称读取一个插件，包括捆绑的技能、应用、MCP 服务器名称，以及远程目录提供时的远程插件 <code>shareUrl</code>。请勿在生产客户端中调用此方法。</li>
+<li><code>plugin/install</code> - 开发中；从市场路径或远程市场名称安装插件。请勿在生产客户端中调用此方法。</li>
+<li><code>plugin/uninstall</code> - 开发中；卸载一个已安装的插件。请勿在生产客户端中调用此方法。</li>
+<li><code>plugin/skill/read</code> - 按远程市场、插件 id 和技能名按需读取远程插件技能的 Markdown。</li>
+<li><code>app/installed</code> - 读取已安装应用的运行时状态，包括每个应用的有效启用状态和可调用状态。</li>
+<li><code>app/list</code> - 分页列出可用应用（连接器），附带可访问性/启用元数据。</li>
+<li><code>app/read</code> - 获取特定应用 id 的元数据，以及可选的仅用于展示的工具摘要。</li>
+<li><code>skills/config/write</code> - 按路径启用或禁用技能。</li>
+<li><code>mcpServer/oauth/login</code> - 为一个已配置的 MCP 服务器启动 OAuth 登录。打开返回的 HTTP 或 HTTPS <code>authorizationUrl</code>，并将 <code>loginId</code> 与 <code>mcpServer/oauthLogin/completed</code> 通知相匹配。</li>
+<li><code>tool/requestUserInput</code> - 针对一次工具调用向用户提出 1-3 个简短问题（实验性）；问题可以设置 <code>isOther</code> 以提供自由填写选项。</li>
+<li><code>mcpServer/elicitation/request</code>（服务器请求）- 请求客户端提供结构化表单输入，或确认由 MCP 服务器发起的 URL 流程。</li>
+<li><code>item/permissions/requestApproval</code>（服务器请求）- 请求客户端授予内置 <code>request_permissions</code> 工具所请求的网络或文件系统权限的一个子集。</li>
+<li><code>config/mcpServer/reload</code> - 从磁盘重新加载 MCP 服务器配置，并为已加载的线程排队一次刷新。</li>
+<li><code>mcpServerStatus/list</code> - 列出 MCP 服务器、工具、资源和认证状态（游标 + limit 分页）。使用 <code>detail: "full"</code> 获取完整数据，或使用 <code>detail: "toolsAndAuthOnly"</code> 省略资源。两种细节模式都包含服务器通告的 <code>serverCapabilities</code>，或在成功初始化之前为 <code>null</code>。传入 <code>serverName</code> 可发现单个服务器。传入 <code>threadId</code> 时，该请求会复用该线程的 MCP 连接。</li>
+<li><code>mcpServer/resource/read</code> - 通过一个已初始化的 MCP 服务器读取单个 MCP 资源。</li>
+<li><code>mcpServer/tool/call</code> - 在线程已配置的 MCP 服务器上调用工具。</li>
+<li><code>mcpServer/startupStatus/updated</code>（通知）- 当已配置 MCP 服务器针对某个已加载线程的启动状态发生变化时发出。</li>
+<li><code>windowsSandbox/readiness</code> - 检查 Windows 沙箱是否就绪。如果返回 <code>updateRequired</code>，请调用 <code>windowsSandbox/setupStart</code> 并等待 <code>windowsSandbox/setupCompleted</code>。</li>
+<li><code>feedback/upload</code> - 提交反馈报告（分类 + 可选的原因/日志 + 会话 id，外加可选的 <code>extraLogFiles</code> 附件）。</li>
+<li><code>config/read</code> - 在解析配置分层之后，获取磁盘上的有效配置。</li>
+<li><code>externalAgentConfig/detect</code> - 检测可通过 <code>includeHome</code> 和可选 <code>cwds</code> 迁移的外部智能体工件；每个检测到的条目都包含 <code>cwd</code>（home 为 <code>null</code>）。</li>
+<li><code>externalAgentConfig/import</code> - 通过传入带 <code>cwd</code>（home 为 <code>null</code>）的显式 <code>migrationItems</code>，应用所选的外部智能体迁移条目。受支持的条目类型包括配置、技能、<code>AGENTS.md</code>、插件、MCP 服务器配置、子智能体（subagent）、钩子、命令和会话；非空导入会随着工作完成发出 <code>externalAgentConfig/import/progress</code> 和 <code>externalAgentConfig/import/completed</code>。插件和会话导入可能异步完成。</li>
+<li><code>config/value/write</code> - 向磁盘上用户的 <code>config.toml</code> 写入单个配置键/值。</li>
+<li><code>config/batchWrite</code> - 以原子方式向磁盘上用户的 <code>config.toml</code> 应用配置编辑。</li>
+<li><code>configRequirements/read</code> - 从 <code>requirements.toml</code> 和/或 MDM 获取需求，包括允许列表和固定的 <code>featureRequirements</code>。启用了 <code>experimentalApi</code> 的客户端还可以读取托管网络需求。</li>
+<li><code>fs/readFile</code>、<code>fs/writeFile</code>、<code>fs/createDirectory</code>、<code>fs/getMetadata</code>、<code>fs/readDirectory</code>、<code>fs/remove</code>、<code>fs/copy</code>、<code>fs/watch</code>、<code>fs/unwatch</code> 和 <code>fs/changed</code>（通知）- 通过 app-server v2 文件系统 API 对绝对文件系统路径进行操作。</li>
+</ul>
+<p>插件摘要包含一个 <code>source</code> 联合类型。本地插件返回
+<code>{ "type": "local", "path": ... }</code>，Git 支撑的市场条目返回
+<code>{ "type": "git", "url": ..., "path": ..., "refName": ..., "sha": ... }</code>，
+包注册表条目返回
+<code>{ "type": "npm", "package": ..., "version": ..., "registry": ... }</code>，
+而远程目录条目返回 <code>{ "type": "remote" }</code>。对于仅远程的目录
+条目，<code>PluginMarketplaceEntry.path</code> 可以为 <code>null</code>；在读取或
+安装此类插件时，请传入 <code>remoteMarketplaceName</code> 而不是
+<code>marketplacePath</code>。</p>
+<h2 id="api-overview">模型<a class="anchor" href="#api-overview">#</a></h2>
+<h3 id="models">列出模型（<code>model/list</code>）<a class="anchor" href="#models">#</a></h3>
+<p>调用 <code>model/list</code>，用可用的模型和推理力度（reasoning effort）填充模型选择器。</p>
+<p>下面的响应展示了其结构。可用模型、推理力度和默认值
+取决于客户端与账户；请使用返回的值，
+而不要把此示例硬编码。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;model/list&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">6</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;limit&quot;</span>: <span class="tk-num">20</span>, <span class="tk-num">&quot;includeHidden&quot;</span>: <span class="tk-num">false</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">6</span>, <span class="tk-num">&quot;result&quot;</span>: {
+  <span class="tk-num">&quot;data&quot;</span>: [{
+    <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;gpt-6.1-sol&quot;</span>,
+    <span class="tk-num">&quot;model&quot;</span>: <span class="tk-str">&quot;gpt-6.1-sol&quot;</span>,
+    <span class="tk-num">&quot;displayName&quot;</span>: <span class="tk-str">&quot;GPT-6.1 Sol&quot;</span>,
+    <span class="tk-num">&quot;hidden&quot;</span>: <span class="tk-num">false</span>,
+    <span class="tk-num">&quot;defaultReasoningEffort&quot;</span>: <span class="tk-str">&quot;medium&quot;</span>,
+    <span class="tk-num">&quot;supportedReasoningEfforts&quot;</span>: [{
+      <span class="tk-num">&quot;reasoningEffort&quot;</span>: <span class="tk-str">&quot;medium&quot;</span>,
+      <span class="tk-num">&quot;description&quot;</span>: <span class="tk-str">&quot;Balances speed and reasoning depth for everyday tasks&quot;</span>
+    }],
+    <span class="tk-num">&quot;inputModalities&quot;</span>: [<span class="tk-str">&quot;text&quot;</span>, <span class="tk-str">&quot;image&quot;</span>],
+    <span class="tk-num">&quot;supportsPersonality&quot;</span>: <span class="tk-num">false</span>,
+    <span class="tk-num">&quot;isDefault&quot;</span>: <span class="tk-num">true</span>
+  }],
+  <span class="tk-num">&quot;nextCursor&quot;</span>: <span class="tk-num">null</span>
+} }
+</code></pre></div>
+<p>每个模型条目可以包含：</p>
+<ul>
+<li><code>supportedReasoningEfforts</code> - 该模型支持的推理力度选项。</li>
+<li><code>defaultReasoningEffort</code> - 建议客户端使用的默认力度。</li>
+<li><code>upgrade</code> - 可选的推荐升级模型 id，用于客户端中的迁移提示。</li>
+<li><code>upgradeInfo</code> - 可选的升级元数据，用于客户端中的迁移提示。</li>
+<li><code>hidden</code> - 该模型是否从默认选择器列表中隐藏。</li>
+<li><code>inputModalities</code> - 该模型支持的输入类型（例如 <code>text</code>、<code>image</code>）。</li>
+<li><code>supportsPersonality</code> - 已弃用的兼容字段；始终为 <code>false</code>。模型不再支持个性选择。</li>
+<li><code>isDefault</code> - 该模型是否为推荐的默认模型。</li>
+</ul>
+<p>如果启动时的提供方不再满足托管需求，<code>model/list</code> 会返回
+<code>-32600</code> 并要求客户端重启 Codex。</p>
+<p>默认情况下，<code>model/list</code> 仅返回选择器可见的模型。如果你需要完整列表并希望在客户端侧使用 <code>hidden</code> 进行过滤，请设置 <code>includeHidden: true</code>。</p>
+<p>当 <code>inputModalities</code> 缺失（较旧的模型目录）时，出于向后兼容，请将其视为 <code>["text", "image"]</code>。</p>
+<h3 id="list-models-modellist">列出实验性功能（<code>experimentalFeature/list</code>）<a class="anchor" href="#list-models-modellist">#</a></h3>
+<p>使用此端点可以发现带有元数据和生命周期阶段的功能标志：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;experimentalFeature/list&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">7</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;limit&quot;</span>: <span class="tk-num">20</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">7</span>, <span class="tk-num">&quot;result&quot;</span>: {
+  <span class="tk-num">&quot;data&quot;</span>: [{
+    <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;unified_exec&quot;</span>,
+    <span class="tk-num">&quot;stage&quot;</span>: <span class="tk-str">&quot;beta&quot;</span>,
+    <span class="tk-num">&quot;displayName&quot;</span>: <span class="tk-str">&quot;Unified exec&quot;</span>,
+    <span class="tk-num">&quot;description&quot;</span>: <span class="tk-str">&quot;Use the unified PTY-backed execution tool.&quot;</span>,
+    <span class="tk-num">&quot;announcement&quot;</span>: <span class="tk-str">&quot;Beta rollout for improved command execution reliability.&quot;</span>,
+    <span class="tk-num">&quot;enabled&quot;</span>: <span class="tk-num">false</span>,
+    <span class="tk-num">&quot;defaultEnabled&quot;</span>: <span class="tk-num">false</span>
+  }],
+  <span class="tk-num">&quot;nextCursor&quot;</span>: <span class="tk-num">null</span>
+} }
+</code></pre></div>
+<p><code>stage</code> 可以是 <code>beta</code>、<code>underDevelopment</code>、<code>stable</code>、<code>deprecated</code> 或 <code>removed</code>。对于非 beta 标志，<code>displayName</code>、<code>description</code> 和 <code>announcement</code> 可能为 <code>null</code>。</p>
+<h3 id="list-experimental-features-experimentalfeaturelist">检查执行环境（实验性）<a class="anchor" href="#list-experimental-features-experimentalfeaturelist">#</a></h3>
+<p>在开始在那里工作之前，使用 <code>environment/info</code> 检查一个已配置的远程环境。
+该方法要求 <code>capabilities.experimentalApi = true</code>。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;environment/info&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">8</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;environmentId&quot;</span>: <span class="tk-str">&quot;devbox&quot;</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">8</span>, <span class="tk-num">&quot;result&quot;</span>: {
+  <span class="tk-num">&quot;shell&quot;</span>: { <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;zsh&quot;</span>, <span class="tk-num">&quot;path&quot;</span>: <span class="tk-str">&quot;/bin/zsh&quot;</span> },
+  <span class="tk-num">&quot;cwd&quot;</span>: <span class="tk-str">&quot;file:///workspace/project&quot;</span>
+} }
+</code></pre></div>
+<p><code>cwd</code> 可以为 <code>null</code>。存在时，它是一个使用该环境
+原生路径语法的规范 <code>file:</code> URI。未知的环境 ID 以及连接
+或协议失败会返回请求错误。</p>
+<h2 id="inspect-an-execution-environment-experimental">线程<a class="anchor" href="#inspect-an-execution-environment-experimental">#</a></h2>
+<ul>
+<li><code>thread/read</code> 读取已存储的线程元数据，而不订阅它。</li>
+<li><code>thread/turns/list</code> 分页浏览已存储线程的轮次历史，而不
+  恢复它。使用 <code>itemsView</code> 选择轮次条目是被省略、摘要
+  显示还是完整加载。</li>
+<li><code>thread/items/list</code> 分页浏览已持久化的线程条目，可选地限定于单个轮次。</li>
+<li><code>thread/list</code> 分页浏览已存储的线程。使用 <code>sectionId</code> 列出某个分区中的线程，或使用 <code>excludedThreadIds</code> 省略屏幕上已显示的线程。</li>
+<li><code>thread/loaded/list</code> 返回当前位于内存中的线程 ID。</li>
+<li><code>thread/archive</code> 将线程已持久化的 JSONL 日志移入已归档目录，并尝试归档尚未归档的派生后代线程日志。</li>
+<li><code>thread/delete</code> 永久删除一个已持久化的活动或已归档线程及其派生后代线程。</li>
+<li><code>thread/metadata/update</code> 更新为线程存储的 <code>gitInfo</code>。</li>
+<li><code>thread/unsubscribe</code> 让当前连接退订一个已加载的线程，并可在不活动宽限期后触发 <code>thread/closed</code>。</li>
+<li><code>thread/unarchive</code> 将已归档线程的 rollout 恢复到活动会话目录。</li>
+<li><code>thread/compact/start</code> 触发压缩（compaction）并立即返回 <code>{}</code>。</li>
+<li><code>thread/revert</code> 从持久化分页线程的历史中移除指定轮次及其之后的所有轮次。它不会更改本地文件。</li>
+<li><code>thread/inject_items</code> 向已加载线程的模型可见历史追加原始 Responses API 条目，而不启动用户轮次。</li>
+</ul>
+<h3 id="threads">启动或恢复线程<a class="anchor" href="#threads">#</a></h3>
+<p>当你需要一段新的 Codex 对话时，请启动一个全新的线程。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/start&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">10</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;model&quot;</span>: <span class="tk-str">&quot;gpt-6.1-sol&quot;</span>,
+  <span class="tk-num">&quot;cwd&quot;</span>: <span class="tk-str">&quot;/Users/me/project&quot;</span>,
+  <span class="tk-num">&quot;approvalPolicy&quot;</span>: <span class="tk-str">&quot;never&quot;</span>,
+  <span class="tk-num">&quot;sandbox&quot;</span>: <span class="tk-str">&quot;workspace-write&quot;</span>,
+  <span class="tk-num">&quot;serviceName&quot;</span>: <span class="tk-str">&quot;my_app_server_client&quot;</span>
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">10</span>, <span class="tk-num">&quot;result&quot;</span>: {
+  <span class="tk-num">&quot;thread&quot;</span>: {
+    <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+    <span class="tk-num">&quot;sessionId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+    <span class="tk-num">&quot;preview&quot;</span>: <span class="tk-str">&quot;&quot;</span>,
+    <span class="tk-num">&quot;ephemeral&quot;</span>: <span class="tk-num">false</span>,
+    <span class="tk-num">&quot;modelProvider&quot;</span>: <span class="tk-str">&quot;openai&quot;</span>,
+    <span class="tk-num">&quot;createdAt&quot;</span>: <span class="tk-num">1730910000</span>
+  }
+} }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/started&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;thread&quot;</span>: { <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span> } } }
+</code></pre></div>
+<p><code>serviceName</code> 是可选的。当你希望 app-server 用你集成的服务名标记线程级指标时，请设置它。</p>
+<p><code>thread/start</code>、<code>thread/resume</code> 和 <code>thread/fork</code> 会返回
+<code>instructionSources</code>，即已加载的指令文件路径数组。每个路径都使用
+其来源环境的原生绝对路径语法，包括远程
+环境。</p>
+<p>新的持久化本地线程默认使用分页历史。请使用
+<code>thread/turns/list</code> 和 <code>thread/items/list</code> 加载历史。在 <code>thread/start</code> 上
+显式地将 <code>historyMode</code> 设为 <code>"legacy"</code> 或 <code>"paginated"</code> 属于
+实验性特性，需要 <code>capabilities.experimentalApi = true</code>。</p>
+<p>选择加入 <code>capabilities.experimentalApi</code> 的 beta 客户端可以在 <code>permissions</code>
+中传入具名的权限配置文件 id，以替代旧版 <code>sandbox</code>
+字段。请不要同时发送 <code>permissions</code> 和 <code>sandbox</code>。将
+<code>permissionProfile/list</code> 与项目 <code>cwd</code> 一起使用，可发现可用的
+配置文件，以及托管需求是否允许使用各个配置文件。</p>
+<p><code>thread.sessionId</code> 标识当前的活动会话树根。根线程使用
+自身的线程 id 作为会话 id；分叉线程保留其来源
+根线程的会话 id。客户端应从
+<code>thread.sessionId</code> 读取会话 id，而不是从线程 id 推导。</p>
+<p>要继续一个已存储的会话，请使用你先前记录的 <code>thread.id</code> 调用 <code>thread/resume</code>。传入 <code>excludeTurns: true</code> 可返回线程元数据和活动会话状态，然后使用分页方法加载历史：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/resume&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">11</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+  <span class="tk-num">&quot;excludeTurns&quot;</span>: <span class="tk-num">true</span>
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">11</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;thread&quot;</span>: { <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>, <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;Bug bash notes&quot;</span>, <span class="tk-num">&quot;ephemeral&quot;</span>: <span class="tk-num">false</span> } } }
+</code></pre></div>
+<p>对于分页线程，<code>thread/resume</code> 和
+<code>thread/fork</code> 的完整历史响应已弃用，并会发出 <code>deprecationNotice</code>。这两个方法
+无需实验性 API 选择加入即可接受
+<code>excludeTurns: true</code>。<code>thread/resume</code> 的响应
+还可以返回 <code>turnsBackwardsCursor</code> 和 <code>itemsBackwardsCursor</code>。请将它们分别
+传给对应的分页方法并附带 <code>sortDirection: "desc"</code>；第一页
+包含游标的锚点。</p>
+<p>恢复线程本身不会更新 <code>thread.updatedAt</code>（或 rollout 文件的修改时间）。当你启动一个轮次时，时间戳才会更新。</p>
+<p>如果你在配置中将某个已启用的 MCP 服务器标记为 <code>required</code>，而该服务器初始化失败，那么 <code>thread/start</code> 和 <code>thread/resume</code> 会直接失败，而不是在没有它的情况下继续。</p>
+<p><code>thread/start</code> 上的 <code>dynamicTools</code> 是一个实验性字段（需要 <code>capabilities.experimentalApi = true</code>）。Codex 会将这些动态工具持久化到线程的 rollout 元数据中，并在你不提供新动态工具的情况下于 <code>thread/resume</code> 时恢复它们。</p>
+<p>如果配置的模型提供方与线程保存的提供方不同，
+<code>thread/resume</code> 和新输入会返回 <code>-32600</code>，且 <code>data.type</code> 设为
+<code>modelProviderMismatch</code>。要显示线程的历史，请使用
+<code>thread/turns/list</code> <a href="#list-thread-turns">分页浏览其轮次</a>。切换回已保存的提供方以继续
+该线程，或调用 <code>thread/fork</code> 以当前提供方从其历史
+启动一个新线程。</p>
+<p>如果你恢复时使用的模型与 rollout 中记录的模型不同，Codex 会发出警告，并在下一个轮次应用一次性的模型切换指令。</p>
+<h3 id="start-or-resume-a-thread">管理线程（thread）目标<a class="anchor" href="#start-or-resume-a-thread">#</a></h3>
+<p>使用 <code>thread/goal/set</code>、<code>thread/goal/get</code> 和 <code>thread/goal/clear</code> 来管理与 TUI 中 <code>/goal</code> 所呈现的同一份持久化目标状态。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/goal/set&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">13</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+  <span class="tk-num">&quot;objective&quot;</span>: <span class="tk-str">&quot;Finish the migration and keep tests green&quot;</span>,
+  <span class="tk-num">&quot;status&quot;</span>: <span class="tk-str">&quot;active&quot;</span>,
+  <span class="tk-num">&quot;tokenBudget&quot;</span>: <span class="tk-num">40000</span>
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">13</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;goal&quot;</span>: {
+  <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+  <span class="tk-num">&quot;objective&quot;</span>: <span class="tk-str">&quot;Finish the migration and keep tests green&quot;</span>,
+  <span class="tk-num">&quot;status&quot;</span>: <span class="tk-str">&quot;active&quot;</span>,
+  <span class="tk-num">&quot;tokenBudget&quot;</span>: <span class="tk-num">40000</span>,
+  <span class="tk-num">&quot;tokensUsed&quot;</span>: <span class="tk-num">0</span>,
+  <span class="tk-num">&quot;timeUsedSeconds&quot;</span>: <span class="tk-num">0</span>
+} } }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/goal/updated&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+  <span class="tk-num">&quot;goal&quot;</span>: {
+    <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+    <span class="tk-num">&quot;objective&quot;</span>: <span class="tk-str">&quot;Finish the migration and keep tests green&quot;</span>,
+    <span class="tk-num">&quot;status&quot;</span>: <span class="tk-str">&quot;active&quot;</span>,
+    <span class="tk-num">&quot;tokenBudget&quot;</span>: <span class="tk-num">40000</span>,
+    <span class="tk-num">&quot;tokensUsed&quot;</span>: <span class="tk-num">0</span>,
+    <span class="tk-num">&quot;timeUsedSeconds&quot;</span>: <span class="tk-num">0</span>
+  }
+} }
+</code></pre></div>
+<p>目标的 objective 必须非空且最多 4,000 个字符。提供新的 objective 会替换目标并重置用量统计。提供当前处于非终止状态的 objective，或省略 <code>objective</code>，会在保留用量历史的同时更新状态或 token 预算。</p>
+<p>要从已存储的会话（session）创建分叉（fork），请携带 <code>thread.id</code> 调用 <code>thread/fork</code>。这会创建一个新的线程 id，并为其发出一条 <code>thread/started</code> 通知。传入 <code>lastTurnId</code> 可复制截至该轮次（turn）（含）的历史，并排除之后的轮次：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/fork&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">12</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>, <span class="tk-num">&quot;lastTurnId&quot;</span>: <span class="tk-str">&quot;turn_456&quot;</span>, <span class="tk-num">&quot;excludeTurns&quot;</span>: <span class="tk-num">true</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">12</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;thread&quot;</span>: { <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;thr_456&quot;</span>, <span class="tk-num">&quot;sessionId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>, <span class="tk-num">&quot;forkedFromId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span> } } }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/started&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;thread&quot;</span>: { <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;thr_456&quot;</span> } } }
+</code></pre></div>
+<p>App-server 会拒绝指向进行中轮次的 <code>lastTurnId</code>。如果源线程正处于轮次进行中而你省略了该字段，分叉会记录一个中断标记，而不是保留一个未标记的不完整轮次。</p>
+<p>传入 <code>ephemeral: true</code> 可创建仅存在于内存中的分叉，且不会将其添加到已存储的线程列表中：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/fork&quot;</span>,
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">13</span>,
+  <span class="tk-num">&quot;params&quot;</span>: {
+    <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+    <span class="tk-num">&quot;ephemeral&quot;</span>: <span class="tk-num">true</span>,
+    <span class="tk-num">&quot;excludeTurns&quot;</span>: <span class="tk-num">true</span>
+  }
+}
+{
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">13</span>,
+  <span class="tk-num">&quot;result&quot;</span>: {
+    <span class="tk-num">&quot;thread&quot;</span>: {
+      <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;thr_789&quot;</span>,
+      <span class="tk-num">&quot;sessionId&quot;</span>: <span class="tk-str">&quot;thr_789&quot;</span>,
+      <span class="tk-num">&quot;forkedFromId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+      <span class="tk-num">&quot;ephemeral&quot;</span>: <span class="tk-num">true</span>
+    }
+  }
+}
+</code></pre></div>
+<p>对分页线程创建 ephemeral 分叉时要求 <code>excludeTurns: true</code>。</p>
+<p>当已设置面向用户的线程标题时，app-server 会在 <code>thread/list</code>、<code>thread/read</code>、<code>thread/resume</code> 和 <code>thread/unarchive</code> 的响应中填充 <code>thread.name</code>。在稍后设置标题之前，<code>thread/start</code> 和 <code>thread/fork</code> 可能会省略 <code>name</code>（或返回 <code>null</code>）。</p>
+<h3 id="manage-a-thread-goal">读取已存储的线程（不恢复）<a class="anchor" href="#manage-a-thread-goal">#</a></h3>
+<p>当你想获取已存储的线程数据、但不想恢复线程或订阅其事件时，请使用 <code>thread/read</code>。</p>
+<ul>
+<li><code>includeTurns</code> - 为 <code>false</code> 或省略时，仅返回线程摘要。将其设为 <code>true</code> 会加载完整历史，这对分页线程而言已被弃用，并且会发出 <code>deprecationNotice</code>。请改用分页方法。</li>
+<li>返回的 <code>thread</code> 对象包含运行时 <code>status</code>（<code>notLoaded</code>、<code>idle</code>、<code>systemError</code>，或带 <code>activeFlags</code> 的 <code>active</code>）。</li>
+</ul>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/read&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">19</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">19</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;thread&quot;</span>: { <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>, <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;Bug bash notes&quot;</span>, <span class="tk-num">&quot;ephemeral&quot;</span>: <span class="tk-num">false</span>, <span class="tk-num">&quot;status&quot;</span>: { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;notLoaded&quot;</span> }, <span class="tk-num">&quot;turns&quot;</span>: [] } } }
+</code></pre></div>
+<p>与 <code>thread/resume</code> 不同，<code>thread/read</code> 不会将线程加载到内存中，也不会发出 <code>thread/started</code>。</p>
+<h3 id="read-a-stored-thread-without-resuming">列出线程轮次<a class="anchor" href="#read-a-stored-thread-without-resuming">#</a></h3>
+<p>使用 <code>thread/turns/list</code> 可在不恢复已存储线程的情况下对其轮次历史分页。结果默认按从新到旧排序，客户端因此可以通过 <code>nextCursor</code> 获取更早的轮次。响应中还包含 <code>backwardsCursor</code>；将它作为 <code>cursor</code> 并配合相反的 <code>sortDirection</code> 传入，即可反向分页。此时会再次包含锚点轮次，以便你捕获它的更新。</p>
+<p><code>itemsView</code> 控制响应包含多少轮次条目（item）数据：</p>
+<ul>
+<li><code>notLoaded</code> 省略条目。</li>
+<li><code>summary</code> 返回摘要式条目数据，是省略该字段时的默认值。</li>
+<li><code>full</code> 返回完整条目数据。</li>
+</ul>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/turns/list&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">20</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+  <span class="tk-num">&quot;limit&quot;</span>: <span class="tk-num">50</span>,
+  <span class="tk-num">&quot;sortDirection&quot;</span>: <span class="tk-str">&quot;desc&quot;</span>,
+  <span class="tk-num">&quot;itemsView&quot;</span>: <span class="tk-str">&quot;summary&quot;</span>
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">20</span>, <span class="tk-num">&quot;result&quot;</span>: {
+  <span class="tk-num">&quot;data&quot;</span>: [],
+  <span class="tk-num">&quot;nextCursor&quot;</span>: <span class="tk-str">&quot;older-turns-cursor-or-null&quot;</span>,
+  <span class="tk-num">&quot;backwardsCursor&quot;</span>: <span class="tk-str">&quot;newer-turns-cursor-or-null&quot;</span>
+} }
+</code></pre></div>
+<h3 id="list-thread-turns">列出线程条目<a class="anchor" href="#list-thread-turns">#</a></h3>
+<p><code>thread/items/list</code> 在不恢复线程的情况下对已持久化的条目分页。传入 <code>turnId</code> 可将结果限定在单个轮次内，省略它则在整个线程范围内对条目分页。结果默认按从旧到新排序（<code>sortDirection: "asc"</code>）。当前的线程存储必须支持条目分页；否则，服务器会返回“不支持的方法”错误。</p>
+<p>传入上一次响应返回的不透明 <code>nextCursor</code> 以继续分页。要从某个已知条目之后开始，请传入一个条目锚点和一个非空的 <code>turnId</code>：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/items/list&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">21</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+  <span class="tk-num">&quot;turnId&quot;</span>: <span class="tk-str">&quot;turn_456&quot;</span>,
+  <span class="tk-num">&quot;cursor&quot;</span>: { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;item&quot;</span>, <span class="tk-num">&quot;itemId&quot;</span>: <span class="tk-str">&quot;item_123&quot;</span> },
+  <span class="tk-num">&quot;sortDirection&quot;</span>: <span class="tk-str">&quot;asc&quot;</span>,
+  <span class="tk-num">&quot;limit&quot;</span>: <span class="tk-num">50</span>
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">21</span>, <span class="tk-num">&quot;result&quot;</span>: {
+  <span class="tk-num">&quot;data&quot;</span>: [],
+  <span class="tk-num">&quot;nextCursor&quot;</span>: <span class="tk-num">null</span>,
+  <span class="tk-num">&quot;backwardsCursor&quot;</span>: <span class="tk-num">null</span>
+} }
+</code></pre></div>
+<p>条目锚点会排除锚点自身：升序返回更新的条目，降序返回更早的条目。该条目必须属于所请求轮次的可见历史。缺少 <code>turnId</code>、条目 ID 为空，或条目未知、超出范围，都会返回 invalid params（<code>-32602</code>）。使用返回的字符串 <code>nextCursor</code> 继续。每个结果条目包含 <code>turnId</code>、<code>item</code>，以及可选的已记录开始时间和完成时间戳。</p>
+<h3 id="list-thread-items">列出线程（支持分页与过滤）<a class="anchor" href="#list-thread-items">#</a></h3>
+<p><code>thread/list</code> 让你能够渲染历史 UI。结果默认按 <code>createdAt</code> 从新到旧排序。过滤器在分页之前应用。可传入以下任意组合：</p>
+<ul>
+<li><code>cursor</code> - 上一次响应返回的不透明字符串；获取第一页时省略。</li>
+<li><code>limit</code> - 未设置时，服务器会使用合理的默认页大小。</li>
+<li><code>sortKey</code> - <code>created_at</code>（默认）、<code>updated_at</code>、<code>recency_at</code> 或 <code>section_position</code>。要使用 <code>section_position</code>，需提供非 null 的 <code>sectionId</code>。</li>
+<li><code>sortDirection</code> - <code>asc</code> 或 <code>desc</code>。如果省略 <code>sortDirection</code>，<code>section_position</code> 按升序排序，基于时间的键按降序排序。</li>
+<li><code>sectionId</code> - 传入某个 section 的 ID 以列出该 section 中的线程，传 <code>null</code> 表示列出未分配到任何 section 的线程。省略该字段则同时包含所有 section 中的线程和未分配的线程。</li>
+<li><code>excludedThreadIds</code> - 最多排除 100 个线程 ID。重复的 ID 也计入这 100 个 ID 的上限。服务器会在应用页面限制之前排除匹配的线程。随每个 cursor 请求发送相同的排除列表。</li>
+<li><code>modelProviders</code> - 将结果限制为特定的提供方（provider）。传入 <code>[]</code> 表示包含所有提供方。如果省略该字段或传入 <code>null</code>，服务器会使用已配置的提供方，除非你按线程关系进行过滤——这种情况下会包含所有提供方。</li>
+<li><code>sourceKinds</code> - 将结果限制为特定的线程来源。省略或传入 <code>[]</code> 时，服务器默认仅包含交互式来源：<code>cli</code> 和 <code>vscode</code>。</li>
+<li><code>archived</code> - 为 <code>true</code> 时，仅列出已归档线程。为 <code>false</code> 或省略时，列出未归档线程（默认）。</li>
+<li><code>cwd</code> - 将结果限制为会话当前工作目录与该路径（或数组中的某个路径）完全匹配的线程。相对路径基于 app-server 进程的工作目录进行解析。</li>
+<li><code>useStateDbOnly</code> - 为 <code>true</code> 时，返回状态数据库的结果，不扫描 JSONL 线程日志来修复元数据。省略该字段或传入 <code>false</code> 则采用默认的扫描并修复行为。</li>
+<li><code>searchTerm</code> - 将结果限制为所提取标题包含该区分大小写的文本片段的线程。</li>
+<li><code>parentThreadId</code> - 将结果限制为给定父线程的直接子线程。此过滤器是实验性的，要求 <code>capabilities.experimentalApi = true</code>。</li>
+<li><code>ancestorThreadId</code> - 将结果限制为给定线程在任意深度的派生后代。此过滤器是实验性的，要求 <code>capabilities.experimentalApi = true</code>；不要将其与 <code>parentThreadId</code> 组合使用。</li>
+</ul>
+<p><code>sourceKinds</code> 接受以下取值：</p>
+<ul>
+<li><code>cli</code></li>
+<li><code>vscode</code></li>
+<li><code>exec</code></li>
+<li><code>appServer</code></li>
+<li><code>subAgent</code></li>
+<li><code>subAgentReview</code></li>
+<li><code>subAgentCompact</code></li>
+<li><code>subAgentThreadSpawn</code></li>
+<li><code>subAgentOther</code></li>
+<li><code>unknown</code></li>
+</ul>
+<p>示例：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/list&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">20</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;cursor&quot;</span>: <span class="tk-num">null</span>,
+  <span class="tk-num">&quot;limit&quot;</span>: <span class="tk-num">25</span>,
+  <span class="tk-num">&quot;sortKey&quot;</span>: <span class="tk-str">&quot;created_at&quot;</span>
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">20</span>, <span class="tk-num">&quot;result&quot;</span>: {
+  <span class="tk-num">&quot;data&quot;</span>: [
+    { <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;thr_a&quot;</span>, <span class="tk-num">&quot;preview&quot;</span>: <span class="tk-str">&quot;Create a TUI&quot;</span>, <span class="tk-num">&quot;ephemeral&quot;</span>: <span class="tk-num">false</span>, <span class="tk-num">&quot;section&quot;</span>: { <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;01984de2-8f74-7c91-a3b2-5c5e937cf318&quot;</span>, <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;Pinned&quot;</span>, <span class="tk-num">&quot;appearance&quot;</span>: <span class="tk-num">null</span> }, <span class="tk-num">&quot;modelProvider&quot;</span>: <span class="tk-str">&quot;openai&quot;</span>, <span class="tk-num">&quot;createdAt&quot;</span>: <span class="tk-num">1730831111</span>, <span class="tk-num">&quot;updatedAt&quot;</span>: <span class="tk-num">1730831111</span>, <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;TUI prototype&quot;</span>, <span class="tk-num">&quot;status&quot;</span>: { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;notLoaded&quot;</span> } },
+    { <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;thr_b&quot;</span>, <span class="tk-num">&quot;preview&quot;</span>: <span class="tk-str">&quot;Fix tests&quot;</span>, <span class="tk-num">&quot;ephemeral&quot;</span>: <span class="tk-num">false</span>, <span class="tk-num">&quot;section&quot;</span>: <span class="tk-num">null</span>, <span class="tk-num">&quot;modelProvider&quot;</span>: <span class="tk-str">&quot;openai&quot;</span>, <span class="tk-num">&quot;createdAt&quot;</span>: <span class="tk-num">1730750000</span>, <span class="tk-num">&quot;updatedAt&quot;</span>: <span class="tk-num">1730750000</span>, <span class="tk-num">&quot;status&quot;</span>: { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;notLoaded&quot;</span> } }
+  ],
+  <span class="tk-num">&quot;nextCursor&quot;</span>: <span class="tk-str">&quot;opaque-token-or-null&quot;</span>
+} }
+</code></pre></div>
+<p>当 <code>nextCursor</code> 为 <code>null</code> 时，表示你已到达最后一页。</p>
+<h3 id="list-threads-with-pagination--filters">将线程组织到 section 中<a class="anchor" href="#list-threads-with-pagination--filters">#</a></h3>
+<p>使用 <code>threadSection/create</code> 创建具名 section，并在 <code>thread/section/move</code> 中使用返回的 <code>section.id</code>。传入 <code>beforeThreadId</code> 可将该线程插入 section 中另一线程之前，省略它则追加到末尾。传入 <code>sectionId: null</code> 可将线程移出其 section。使用 <code>threadSection/list</code>、<code>threadSection/update</code> 和 <code>threadSection/delete</code> 来翻页浏览、重命名和删除自定义 section。要固定（pin）某个线程，可将其移动到 <code>threadSection/list</code> 返回的内置 Pinned section。</p>
+<h3 id="organize-threads-into-sections">管理线程附件<a class="anchor" href="#organize-threads-into-sections">#</a></h3>
+<p>使用附件（attachment）将 pull request 等资源与已存储的线程关联起来。你可以在不恢复线程的情况下管理这些引用。</p>
+<ul>
+<li><code>thread/attachment/add</code> 接收 <code>threadId</code>、<code>attachmentType</code>、<code>identityKey</code> 和一个 JSON <code>payload</code>。对同一线程再次添加相同的类型和 key 时，会返回已存在的附件。</li>
+<li><code>thread/attachment/list</code> 对线程的附件分页。要查找引用某个资源的线程，请携带该资源的 <code>attachmentType</code> 和 <code>identityKey</code> 调用 <code>thread/attachmentOwner/list</code>。</li>
+<li><code>thread/attachment/remove</code> 接收 <code>threadId</code>、<code>attachmentType</code> 和 <code>identityKey</code>。底层资源仍保持可用。</li>
+<li><code>thread/attachment/updated</code> 在关联发生变化时报告 <code>created</code> 或 <code>deleted</code> 操作。</li>
+</ul>
+<h3 id="manage-thread-attachments">更新已存储的线程元数据<a class="anchor" href="#manage-thread-attachments">#</a></h3>
+<p>使用 <code>thread/metadata/update</code> 可在不恢复线程的情况下修补已存储的线程元数据。在 <code>gitInfo</code> 中传入你想要更新的 Git 字段。省略某个字段以保留其值，或传入 <code>null</code> 以清除它。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/metadata/update&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">21</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+  <span class="tk-num">&quot;gitInfo&quot;</span>: { <span class="tk-num">&quot;branch&quot;</span>: <span class="tk-str">&quot;feature/sidebar-pr&quot;</span> }
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">21</span>, <span class="tk-num">&quot;result&quot;</span>: {
+  <span class="tk-num">&quot;thread&quot;</span>: {
+    <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+    <span class="tk-num">&quot;gitInfo&quot;</span>: { <span class="tk-num">&quot;sha&quot;</span>: <span class="tk-num">null</span>, <span class="tk-num">&quot;branch&quot;</span>: <span class="tk-str">&quot;feature/sidebar-pr&quot;</span>, <span class="tk-num">&quot;originUrl&quot;</span>: <span class="tk-num">null</span> }
+  }
+} }
+</code></pre></div>
+<h3 id="update-stored-thread-metadata">跟踪线程状态变化<a class="anchor" href="#update-stored-thread-metadata">#</a></h3>
+<p>每当已加载线程的运行时状态发生变化时，就会发出 <code>thread/status/changed</code>。payload 包含 <code>threadId</code> 和新的 <code>status</code>。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/status/changed&quot;</span>,
+  <span class="tk-num">&quot;params&quot;</span>: {
+    <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+    <span class="tk-num">&quot;status&quot;</span>: { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;active&quot;</span>, <span class="tk-num">&quot;activeFlags&quot;</span>: [<span class="tk-str">&quot;waitingOnApproval&quot;</span>] }
+  }
+}
+</code></pre></div>
+<h3 id="track-thread-status-changes">列出已加载的线程<a class="anchor" href="#track-thread-status-changes">#</a></h3>
+<p><code>thread/loaded/list</code> 返回当前加载在内存中的线程 ID。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/loaded/list&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">21</span> }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">21</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;data&quot;</span>: [<span class="tk-str">&quot;thr_123&quot;</span>, <span class="tk-str">&quot;thr_456&quot;</span>] } }
+</code></pre></div>
+<h3 id="list-loaded-threads">退订已加载的线程<a class="anchor" href="#list-loaded-threads">#</a></h3>
+<p><code>thread/unsubscribe</code> 移除当前连接对某个线程的订阅。响应状态为以下之一：</p>
+<ul>
+<li><code>unsubscribed</code>：连接此前已订阅，现已被移除。</li>
+<li><code>notSubscribed</code>：连接此前未订阅该线程。</li>
+<li><code>notLoaded</code>：线程未加载。</li>
+</ul>
+<p>在最后一个订阅者离开后，app-server 默认在线程闲置 60 秒后将其卸载。可设置 <a href="https://learn.chatgpt.com/docs/config-file/config-reference"><code>thread_unload_delay_secs</code></a> 来更改该间隔。卸载线程时，app-server 会发出状态为 <code>notLoaded</code> 的 <code>thread/status/changed</code> 以及一条 <code>thread/closed</code> 通知。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/unsubscribe&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">22</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">22</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;status&quot;</span>: <span class="tk-str">&quot;unsubscribed&quot;</span> } }
+</code></pre></div>
+<p>如果该线程随后过期：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/status/changed&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: {
+    <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+    <span class="tk-num">&quot;status&quot;</span>: { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;notLoaded&quot;</span> }
+} }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/closed&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span> } }
+</code></pre></div>
+<h3 id="unsubscribe-from-a-loaded-thread">归档线程<a class="anchor" href="#unsubscribe-from-a-loaded-thread">#</a></h3>
+<p>使用 <code>thread/archive</code> 将已持久化的线程日志（以 JSONL 文件形式存储在磁盘上）移入已归档会话目录。归档线程时还会尝试归档那些尚未归档的派生后代线程。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/archive&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">22</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_b&quot;</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">22</span>, <span class="tk-num">&quot;result&quot;</span>: {} }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/archived&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_b&quot;</span> } }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/archived&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_child&quot;</span> } }
+</code></pre></div>
+<p>已归档的线程不会出现在后续的 <code>thread/list</code> 调用中，除非你传入 <code>archived: true</code>。服务器会为它实际归档的每个线程发出一条 <code>thread/archived</code> 通知；如果某个派生后代无法归档，请求仍可能成功，只是不会发出该后代的归档通知。</p>
+<h3 id="archive-a-thread">删除线程<a class="anchor" href="#archive-a-thread">#</a></h3>
+<p>使用 <code>thread/delete</code> 永久删除已持久化的活跃或已归档线程及其派生后代线程。服务器会在返回成功之前移除现有的 rollout 文件和关联元数据；缺失的 rollout 文件会被视为已删除。Ephemeral 根线程无法删除。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/delete&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">23</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_b&quot;</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">23</span>, <span class="tk-num">&quot;result&quot;</span>: {} }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/deleted&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_b&quot;</span> } }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/deleted&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_child&quot;</span> } }
+</code></pre></div>
+<h3 id="delete-a-thread">取消归档线程<a class="anchor" href="#delete-a-thread">#</a></h3>
+<p>使用 <code>thread/unarchive</code> 将已归档线程的 rollout 移回活跃会话目录。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/unarchive&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">24</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_b&quot;</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">24</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;thread&quot;</span>: { <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;thr_b&quot;</span>, <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;Bug bash notes&quot;</span> } } }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/unarchived&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_b&quot;</span> } }
+</code></pre></div>
+<h3 id="unarchive-a-thread">触发线程压缩<a class="anchor" href="#unarchive-a-thread">#</a></h3>
+<p>使用 <code>thread/compact/start</code> 为线程触发手动的历史压缩（compaction）。该请求立即返回 <code>{}</code>。</p>
+<p>App-server 通过同一 <code>threadId</code> 上的标准 <code>turn/*</code> 和 <code>item/*</code> 通知来发出进度，其中包括一个 <code>contextCompaction</code> 条目生命周期（先是 <code>item/started</code>，然后是 <code>item/completed</code>）。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/compact/start&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">25</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_b&quot;</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">25</span>, <span class="tk-num">&quot;result&quot;</span>: {} }
+</code></pre></div>
+<h3 id="trigger-thread-compaction">运行线程 shell 命令<a class="anchor" href="#trigger-thread-compaction">#</a></h3>
+<p>使用 <code>thread/shellCommand</code> 执行属于某个线程的、由用户发起的 shell 命令。该请求立即返回 <code>{}</code>，进度则通过标准的 <code>turn/*</code> 和 <code>item/*</code> 通知流式传输。</p>
+<p>此 API 在沙箱之外运行、拥有完全访问权限，且不继承线程的沙箱策略。客户端应仅对用户显式发起的命令开放此 API。</p>
+<p>如果线程已有活跃轮次，该命令会作为该轮次上的辅助操作运行，其格式化输出会被注入到该轮次的消息流中。如果线程处于空闲状态，app-server 会为该 shell 命令启动一个独立轮次。</p>
+<p>设置 <code>timeoutMs</code> 以毫秒为单位限制执行时间。省略它或传入 <code>null</code> 时使用一小时的默认值。<code>0</code> 表示请求立即超时；负值会被拒绝。该超时不会延迟立即返回的 RPC 确认。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/shellCommand&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">26</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_b&quot;</span>, <span class="tk-num">&quot;command&quot;</span>: <span class="tk-str">&quot;git status --short&quot;</span>, <span class="tk-num">&quot;timeoutMs&quot;</span>: <span class="tk-num">10000</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">26</span>, <span class="tk-num">&quot;result&quot;</span>: {} }
+</code></pre></div>
+<h3 id="run-a-thread-shell-command">清理后台终端<a class="anchor" href="#run-a-thread-shell-command">#</a></h3>
+<p>使用 <code>thread/backgroundTerminals/clean</code> 停止与某个线程关联的所有正在运行的后台终端。此方法为实验性，要求 <code>capabilities.experimentalApi = true</code>。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/backgroundTerminals/clean&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">27</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_b&quot;</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">27</span>, <span class="tk-num">&quot;result&quot;</span>: {} }
+</code></pre></div>
+<p>使用 <code>thread/backgroundTerminals/list</code> 查看某个已加载线程正在运行的后台终端。该请求支持标准的 <code>cursor</code> 和 <code>limit</code> 分页，返回的 <code>processId</code> 是 app-server 进程 id。此方法为实验性，要求 <code>capabilities.experimentalApi = true</code>：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/backgroundTerminals/list&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">28</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_b&quot;</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">28</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;data&quot;</span>: [
+  {
+    <span class="tk-num">&quot;itemId&quot;</span>: <span class="tk-str">&quot;item_456&quot;</span>,
+    <span class="tk-num">&quot;processId&quot;</span>: <span class="tk-str">&quot;42&quot;</span>,
+    <span class="tk-num">&quot;command&quot;</span>: <span class="tk-str">&quot;python3 -m http.server&quot;</span>,
+    <span class="tk-num">&quot;cwd&quot;</span>: <span class="tk-str">&quot;/workspace&quot;</span>,
+    <span class="tk-num">&quot;osPid&quot;</span>: <span class="tk-num">null</span>,
+    <span class="tk-num">&quot;cpuPercent&quot;</span>: <span class="tk-num">null</span>,
+    <span class="tk-num">&quot;rssKb&quot;</span>: <span class="tk-num">null</span>
+  }
+], <span class="tk-num">&quot;nextCursor&quot;</span>: <span class="tk-num">null</span> } }
+</code></pre></div>
+<p>使用 <code>thread/backgroundTerminals/terminate</code> 并携带该 <code>processId</code> 来停止单个后台终端。此方法为实验性，要求 <code>capabilities.experimentalApi = true</code>：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/backgroundTerminals/terminate&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">29</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_b&quot;</span>, <span class="tk-num">&quot;processId&quot;</span>: <span class="tk-str">&quot;42&quot;</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">29</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;terminated&quot;</span>: <span class="tk-num">true</span> } }
+</code></pre></div>
+<h3 id="clean-background-terminals">回退线程历史<a class="anchor" href="#clean-background-terminals">#</a></h3>
+<p>使用 <code>thread/revert</code> 从持久化的分页线程对话历史中移除 <code>beforeTurnId</code> 及其之后的所有轮次。它不会回退本地文件改动。如果线程尚未加载，请先恢复该线程。不支持 ephemeral 线程和具有旧式历史的线程。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/revert&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">30</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_b&quot;</span>, <span class="tk-num">&quot;beforeTurnId&quot;</span>: <span class="tk-str">&quot;turn_456&quot;</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">30</span>, <span class="tk-num">&quot;result&quot;</span>: {
+  <span class="tk-num">&quot;thread&quot;</span>: { <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;thr_b&quot;</span>, <span class="tk-num">&quot;ephemeral&quot;</span>: <span class="tk-num">false</span>, <span class="tk-num">&quot;turns&quot;</span>: [] },
+  <span class="tk-num">&quot;turnsBackwardsCursor&quot;</span>: <span class="tk-str">&quot;retained-turn-cursor-or-null&quot;</span>,
+  <span class="tk-num">&quot;itemsBackwardsCursor&quot;</span>: <span class="tk-str">&quot;retained-item-cursor-or-null&quot;</span>
+} }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/reverted&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_b&quot;</span> } }
+</code></pre></div>
+<p>返回的 <code>thread.turns</code> 始终为空。将返回的 cursor 与 <code>thread/turns/list</code> 或 <code>thread/items/list</code> 以及 <code>sortDirection: "desc"</code> 一起使用，即可加载保留的历史，包括该 cursor 的锚点。</p>
+<p><code>thread/rollback</code> 已被移除，调用会返回 unknown-method 错误。旧保存线程中已有的 rollback 标记仍然可以读取。</p>
+<h2 id="revert-thread-history">轮次（Turns）<a class="anchor" href="#revert-thread-history">#</a></h2>
+<p><code>input</code> 字段接受一个项（item）列表：</p>
+<ul>
+<li><code>{ "type": "text", "text": "Explain this diff" }</code></li>
+<li><code>{ "type": "image", "url": "https://.../design.png" }</code></li>
+<li><code>{ "type": "localImage", "path": "/tmp/screenshot.png" }</code></li>
+</ul>
+<p>你可以按轮次（turn）覆盖配置设置（模型、effort、<code>cwd</code>、沙箱策略、摘要）。指定后，这些设置会成为同一线程（thread）中后续轮次的默认值。<code>outputSchema</code> 仅作用于当前轮次。对于 <code>sandboxPolicy.type = "externalSandbox"</code>，需将 <code>networkAccess</code> 设为 <code>restricted</code> 或 <code>enabled</code>；对于 <code>workspaceWrite</code>，<code>networkAccess</code> 仍为布尔值。</p>
+<p>对于 <code>turn/start.collaborationMode</code>，<code>settings.developer_instructions: null</code> 表示“使用所选模式的内置指令”，而不是清除模式指令。</p>
+<h3 id="turns">沙箱读取访问（<code>ReadOnlyAccess</code>）<a class="anchor" href="#turns">#</a></h3>
+<p><code>sandboxPolicy</code> 支持显式的读取访问控制：</p>
+<ul>
+<li><code>readOnly</code>：可选的 <code>access</code>（默认为 <code>{ "type": "fullAccess" }</code>，或为受限根目录）。</li>
+<li><code>workspaceWrite</code>：可选的 <code>readOnlyAccess</code>（默认为 <code>{ "type": "fullAccess" }</code>，或为受限根目录）。</li>
+</ul>
+<p>受限读取访问的结构：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;restricted&quot;</span>,
+  <span class="tk-num">&quot;includePlatformDefaults&quot;</span>: <span class="tk-num">true</span>,
+  <span class="tk-num">&quot;readableRoots&quot;</span>: [<span class="tk-str">&quot;/Users/me/shared-read-only&quot;</span>]
+}
+</code></pre></div>
+<p>在 macOS 上，<code>includePlatformDefaults: true</code> 会为受限读取会话附加一份经过筛选的平台默认 Seatbelt 策略。这样可以在不宽泛放开整个 <code>/System</code> 的情况下提升工具兼容性。</p>
+<p>示例：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;readOnly&quot;</span>, <span class="tk-num">&quot;access&quot;</span>: { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;fullAccess&quot;</span> } }
+</code></pre></div>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;workspaceWrite&quot;</span>,
+  <span class="tk-num">&quot;writableRoots&quot;</span>: [<span class="tk-str">&quot;/Users/me/project&quot;</span>],
+  <span class="tk-num">&quot;readOnlyAccess&quot;</span>: {
+    <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;restricted&quot;</span>,
+    <span class="tk-num">&quot;includePlatformDefaults&quot;</span>: <span class="tk-num">true</span>,
+    <span class="tk-num">&quot;readableRoots&quot;</span>: [<span class="tk-str">&quot;/Users/me/shared-read-only&quot;</span>]
+  },
+  <span class="tk-num">&quot;networkAccess&quot;</span>: <span class="tk-num">false</span>
+}
+</code></pre></div>
+<h3 id="sandbox-read-access-readonlyaccess">启动轮次<a class="anchor" href="#sandbox-read-access-readonlyaccess">#</a></h3>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;turn/start&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">30</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+  <span class="tk-num">&quot;input&quot;</span>: [ { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;text&quot;</span>, <span class="tk-num">&quot;text&quot;</span>: <span class="tk-str">&quot;Run tests&quot;</span> } ],
+  <span class="tk-num">&quot;cwd&quot;</span>: <span class="tk-str">&quot;/Users/me/project&quot;</span>,
+  <span class="tk-num">&quot;approvalPolicy&quot;</span>: <span class="tk-str">&quot;on-request&quot;</span>,
+  <span class="tk-num">&quot;sandboxPolicy&quot;</span>: {
+    <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;workspaceWrite&quot;</span>,
+    <span class="tk-num">&quot;writableRoots&quot;</span>: [<span class="tk-str">&quot;/Users/me/project&quot;</span>],
+    <span class="tk-num">&quot;networkAccess&quot;</span>: <span class="tk-num">true</span>
+  },
+  <span class="tk-num">&quot;model&quot;</span>: <span class="tk-str">&quot;gpt-6.1-sol&quot;</span>,
+  <span class="tk-num">&quot;effort&quot;</span>: <span class="tk-str">&quot;medium&quot;</span>,
+  <span class="tk-num">&quot;summary&quot;</span>: <span class="tk-str">&quot;concise&quot;</span>,
+  <span class="tk-num">&quot;outputSchema&quot;</span>: {
+    <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;object&quot;</span>,
+    <span class="tk-num">&quot;properties&quot;</span>: { <span class="tk-num">&quot;answer&quot;</span>: { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;string&quot;</span> } },
+    <span class="tk-num">&quot;required&quot;</span>: [<span class="tk-str">&quot;answer&quot;</span>],
+    <span class="tk-num">&quot;additionalProperties&quot;</span>: <span class="tk-num">false</span>
+  }
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">30</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;turn&quot;</span>: { <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;turn_456&quot;</span>, <span class="tk-num">&quot;status&quot;</span>: <span class="tk-str">&quot;inProgress&quot;</span>, <span class="tk-num">&quot;items&quot;</span>: [], <span class="tk-num">&quot;error&quot;</span>: <span class="tk-num">null</span> } } }
+</code></pre></div>
+<p>设置 <code>serviceTierForTurn</code> 可为某个新轮次覆盖服务层级。使用 <code>"default"</code> 表示标准速度，或省略该字段以继承线程的服务层级。若要为当前轮次及其后的轮次更改服务层级，请设置 <code>serviceTier</code>。</p>
+<p>要以你的客户端所运行工具的输出启动一个轮次，请传入 <code>toolOutput</code>，其中包含非空的 <code>name</code>、可选的 <code>namespace</code>，以及一个 <code>output</code> 字符串或内容项数组。将 <code>input</code> 设为空数组；不能将 <code>toolOutput</code> 与非空的用户输入组合使用。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;turn/start&quot;</span>,
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">31</span>,
+  <span class="tk-num">&quot;params&quot;</span>: {
+    <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+    <span class="tk-num">&quot;input&quot;</span>: [],
+    <span class="tk-num">&quot;toolOutput&quot;</span>: {
+      <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;run_tests&quot;</span>,
+      <span class="tk-num">&quot;namespace&quot;</span>: <span class="tk-num">null</span>,
+      <span class="tk-num">&quot;output&quot;</span>: <span class="tk-str">&quot;All 42 tests passed.&quot;</span>
+    }
+  }
+}
+</code></pre></div>
+<p>该输出在对话中仍作为工具输出，并以 <code>functionCallOutput</code> 项的形式出现在通知和持久化历史中。如果某个常规轮次已处于活动状态，Codex 会将该输出排入该轮次的队列。</p>
+<h3 id="start-a-turn">向线程注入项<a class="anchor" href="#start-a-turn">#</a></h3>
+<p>使用 <code>thread/inject_items</code> 可将预构建的 Responses API 项追加到已加载线程的 prompt 历史中，而无需启动用户轮次。这些项会被持久化到 rollout，并包含在后续的模型请求中。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;thread/inject_items&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">31</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+  <span class="tk-num">&quot;items&quot;</span>: [
+    {
+      <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;message&quot;</span>,
+      <span class="tk-num">&quot;role&quot;</span>: <span class="tk-str">&quot;assistant&quot;</span>,
+      <span class="tk-num">&quot;content&quot;</span>: [{ <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;output_text&quot;</span>, <span class="tk-num">&quot;text&quot;</span>: <span class="tk-str">&quot;Previously computed context.&quot;</span> }]
+    }
+  ]
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">31</span>, <span class="tk-num">&quot;result&quot;</span>: {} }
+</code></pre></div>
+<h3 id="inject-items-into-a-thread">转向活动轮次<a class="anchor" href="#inject-items-into-a-thread">#</a></h3>
+<p>使用 <code>turn/steer</code> 向正在执行的活动轮次追加更多用户输入。</p>
+<ul>
+<li>包含 <code>expectedTurnId</code>；它必须与活动轮次的 ID 匹配。</li>
+<li>如果线程上没有活动的轮次，请求会失败。</li>
+<li><code>turn/steer</code> 不会发出新的 <code>turn/started</code> 通知。</li>
+<li><code>turn/steer</code> 不接受轮次级别的覆盖项（<code>model</code>、<code>cwd</code>、<code>sandboxPolicy</code> 或 <code>outputSchema</code>）。</li>
+</ul>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;turn/steer&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">32</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+  <span class="tk-num">&quot;input&quot;</span>: [ { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;text&quot;</span>, <span class="tk-num">&quot;text&quot;</span>: <span class="tk-str">&quot;Actually focus on failing tests first.&quot;</span> } ],
+  <span class="tk-num">&quot;expectedTurnId&quot;</span>: <span class="tk-str">&quot;turn_456&quot;</span>
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">32</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;turnId&quot;</span>: <span class="tk-str">&quot;turn_456&quot;</span> } }
+</code></pre></div>
+<h3 id="steer-an-active-turn">启动轮次（调用技能）<a class="anchor" href="#steer-an-active-turn">#</a></h3>
+<p>通过在文本输入中包含 <code>$&lt;skill-name&gt;</code> 并同时添加一个 <code>skill</code> 输入项，可显式调用技能。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;turn/start&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">33</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+  <span class="tk-num">&quot;input&quot;</span>: [
+    { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;text&quot;</span>, <span class="tk-num">&quot;text&quot;</span>: <span class="tk-str">&quot;$skill-creator Add a new skill for triaging flaky CI and include step-by-step usage.&quot;</span> },
+    { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;skill&quot;</span>, <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;skill-creator&quot;</span>, <span class="tk-num">&quot;path&quot;</span>: <span class="tk-str">&quot;/Users/me/.codex/skills/skill-creator/SKILL.md&quot;</span> }
+  ]
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">33</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;turn&quot;</span>: { <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;turn_457&quot;</span>, <span class="tk-num">&quot;status&quot;</span>: <span class="tk-str">&quot;inProgress&quot;</span>, <span class="tk-num">&quot;items&quot;</span>: [], <span class="tk-num">&quot;error&quot;</span>: <span class="tk-num">null</span> } } }
+</code></pre></div>
+<h3 id="start-a-turn-invoke-a-skill">中断轮次<a class="anchor" href="#start-a-turn-invoke-a-skill">#</a></h3>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;turn/interrupt&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">31</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>, <span class="tk-num">&quot;turnId&quot;</span>: <span class="tk-str">&quot;turn_456&quot;</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">31</span>, <span class="tk-num">&quot;result&quot;</span>: {} }
+</code></pre></div>
+<p>成功时，该轮次以 <code>status: "interrupted"</code> 结束。</p>
+<h2 id="interrupt-a-turn">审查<a class="anchor" href="#interrupt-a-turn">#</a></h2>
+<p><code>review/start</code> 会为线程运行 Codex 审查器，并流式传输审查项。目标包括：</p>
+<ul>
+<li><code>uncommittedChanges</code></li>
+<li><code>baseBranch</code>（与某个分支做 diff）</li>
+<li><code>commit</code>（审查特定提交）</li>
+<li><code>custom</code>（自由格式的指令）</li>
+</ul>
+<p><code>review/start</code> 会在所提供的线程上运行审查。可以省略 <code>delivery</code>，或传入 <code>"inline"</code>。若要运行一次独立的审查，可使用 <code>thread/fork</code> 以包含既有历史，或使用 <code>thread/start</code> 创建全新线程，然后用新的线程 ID 调用 <code>review/start</code>。</p>
+<p>请求/响应示例：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;review/start&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">40</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>,
+  <span class="tk-num">&quot;delivery&quot;</span>: <span class="tk-str">&quot;inline&quot;</span>,
+  <span class="tk-num">&quot;target&quot;</span>: { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;commit&quot;</span>, <span class="tk-num">&quot;sha&quot;</span>: <span class="tk-str">&quot;1234567deadbeef&quot;</span>, <span class="tk-num">&quot;title&quot;</span>: <span class="tk-str">&quot;Polish tui colors&quot;</span> }
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">40</span>, <span class="tk-num">&quot;result&quot;</span>: {
+  <span class="tk-num">&quot;turn&quot;</span>: {
+    <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;turn_900&quot;</span>,
+    <span class="tk-num">&quot;status&quot;</span>: <span class="tk-str">&quot;inProgress&quot;</span>,
+    <span class="tk-num">&quot;items&quot;</span>: [
+      { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;userMessage&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;turn_900&quot;</span>, <span class="tk-num">&quot;content&quot;</span>: [ { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;text&quot;</span>, <span class="tk-num">&quot;text&quot;</span>: <span class="tk-str">&quot;Review commit 1234567: Polish tui colors&quot;</span> } ] }
+    ],
+    <span class="tk-num">&quot;error&quot;</span>: <span class="tk-num">null</span>
+  },
+  <span class="tk-num">&quot;reviewThreadId&quot;</span>: <span class="tk-str">&quot;thr_123&quot;</span>
+} }
+</code></pre></div>
+<p>Codex 会照常流式发送 <code>turn/started</code> 通知，随后是一条带有 <code>enteredReviewMode</code> 项的 <code>item/started</code>：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;item/started&quot;</span>,
+  <span class="tk-num">&quot;params&quot;</span>: {
+    <span class="tk-num">&quot;item&quot;</span>: {
+      <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;enteredReviewMode&quot;</span>,
+      <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;turn_900&quot;</span>,
+      <span class="tk-num">&quot;review&quot;</span>: <span class="tk-str">&quot;current changes&quot;</span>
+    }
+  }
+}
+</code></pre></div>
+<p>当审查器完成时，服务器会发出 <code>item/started</code> 和 <code>item/completed</code>，其中包含带有最终审查文本的 <code>exitedReviewMode</code> 项：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;item/completed&quot;</span>,
+  <span class="tk-num">&quot;params&quot;</span>: {
+    <span class="tk-num">&quot;item&quot;</span>: {
+      <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;exitedReviewMode&quot;</span>,
+      <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;turn_900&quot;</span>,
+      <span class="tk-num">&quot;review&quot;</span>: <span class="tk-str">&quot;Looks solid overall...&quot;</span>
+    }
+  }
+}
+</code></pre></div>
+<p>使用此通知在你的客户端中渲染审查器输出。</p>
+<h2 id="review">进程执行<a class="anchor" href="#review">#</a></h2>
+<p><code>process/*</code> 是一个实验性的显式进程控制 API。它需要 <code>capabilities.experimentalApi = true</code>，并且运行在 Codex 的沙箱之外。仅当你的客户端有意在无沙箱的情况下暴露本地进程控制时才使用它。</p>
+<p>使用 <code>process/spawn</code> 启动进程并提供一个 <code>processHandle</code>，然后将该句柄用于 stdin、调整大小和终止请求。输出通过 <code>process/outputDelta</code> 通知流式传输，完成情况则通过 <code>process/exited</code> 流式传输。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;process/spawn&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">48</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;command&quot;</span>: [<span class="tk-str">&quot;python3&quot;</span>, <span class="tk-str">&quot;-m&quot;</span>, <span class="tk-str">&quot;pytest&quot;</span>, <span class="tk-str">&quot;-q&quot;</span>],
+  <span class="tk-num">&quot;processHandle&quot;</span>: <span class="tk-str">&quot;pytest-1&quot;</span>,
+  <span class="tk-num">&quot;cwd&quot;</span>: <span class="tk-str">&quot;/Users/me/project&quot;</span>,
+  <span class="tk-num">&quot;tty&quot;</span>: <span class="tk-num">true</span>
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">48</span>, <span class="tk-num">&quot;result&quot;</span>: {} }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;process/outputDelta&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;processHandle&quot;</span>: <span class="tk-str">&quot;pytest-1&quot;</span>,
+  <span class="tk-num">&quot;stream&quot;</span>: <span class="tk-str">&quot;stdout&quot;</span>,
+  <span class="tk-num">&quot;deltaBase64&quot;</span>: <span class="tk-str">&quot;Li4u&quot;</span>
+} }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;process/exited&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;processHandle&quot;</span>: <span class="tk-str">&quot;pytest-1&quot;</span>,
+  <span class="tk-num">&quot;exitCode&quot;</span>: <span class="tk-num">0</span>
+} }
+</code></pre></div>
+<p>使用 <code>process/writeStdin</code> 并配合 <code>deltaBase64</code>、<code>closeStdin</code> 或两者兼用来发送输入。使用 <code>process/resizePty</code> 处理 PTY 大小调整事件，使用 <code>process/kill</code> 终止正在运行的进程。</p>
+<h2 id="process-execution">命令执行<a class="anchor" href="#process-execution">#</a></h2>
+<p><code>command/exec</code> 在服务器沙箱下运行单条命令（<code>argv</code> 数组），而不创建线程。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;command/exec&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">50</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;command&quot;</span>: [<span class="tk-str">&quot;ls&quot;</span>, <span class="tk-str">&quot;-la&quot;</span>],
+  <span class="tk-num">&quot;cwd&quot;</span>: <span class="tk-str">&quot;/Users/me/project&quot;</span>,
+  <span class="tk-num">&quot;sandboxPolicy&quot;</span>: { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;workspaceWrite&quot;</span> },
+  <span class="tk-num">&quot;timeoutMs&quot;</span>: <span class="tk-num">10000</span>
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">50</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;exitCode&quot;</span>: <span class="tk-num">0</span>, <span class="tk-num">&quot;stdout&quot;</span>: <span class="tk-str">&quot;...&quot;</span>, <span class="tk-num">&quot;stderr&quot;</span>: <span class="tk-str">&quot;&quot;</span> } }
+</code></pre></div>
+<p>如果你已经对服务器进程做了沙箱隔离，并希望 Codex 跳过其自身的沙箱强制执行，可使用 <code>sandboxPolicy.type = "externalSandbox"</code>。对于外部沙箱模式，将 <code>networkAccess</code> 设为 <code>restricted</code>（默认）或 <code>enabled</code>。对于 <code>readOnly</code> 和 <code>workspaceWrite</code>，可使用与上面所示相同的可选 <code>access</code> / <code>readOnlyAccess</code> 结构。</p>
+<p>注意：</p>
+<ul>
+<li>服务器会拒绝空的 <code>command</code> 数组。</li>
+<li><code>sandboxPolicy</code> 接受与 <code>turn/start</code> 所用相同的结构（例如 <code>dangerFullAccess</code>、<code>readOnly</code>、<code>workspaceWrite</code>、<code>externalSandbox</code>）。</li>
+<li>省略时，<code>timeoutMs</code> 会回退到服务器默认值。</li>
+<li>为基于 PTY 的会话设置 <code>tty: true</code>；当你计划随后使用 <code>command/exec/write</code>、<code>command/exec/resize</code> 或 <code>command/exec/terminate</code> 时，请使用 <code>processId</code>。</li>
+<li>设置 <code>streamStdoutStderr: true</code>，以便在命令运行期间接收 <code>command/exec/outputDelta</code> 通知。</li>
+</ul>
+<h3 id="command-execution">读取管理要求（<code>configRequirements/read</code>）<a class="anchor" href="#command-execution">#</a></h3>
+<p>使用 <code>configRequirements/read</code> 可查看从 <code>requirements.toml</code> 和/或 MDM 加载的生效管理要求。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;configRequirements/read&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">52</span>, <span class="tk-num">&quot;params&quot;</span>: {} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">52</span>, <span class="tk-num">&quot;result&quot;</span>: {
+  <span class="tk-num">&quot;requirements&quot;</span>: {
+    <span class="tk-num">&quot;allowedApprovalPolicies&quot;</span>: [<span class="tk-str">&quot;on-request&quot;</span>, <span class="tk-str">&quot;never&quot;</span>],
+    <span class="tk-num">&quot;allowedSandboxModes&quot;</span>: [<span class="tk-str">&quot;read-only&quot;</span>, <span class="tk-str">&quot;workspace-write&quot;</span>],
+    <span class="tk-num">&quot;featureRequirements&quot;</span>: {
+      <span class="tk-num">&quot;unified_exec&quot;</span>: <span class="tk-num">false</span>
+    }
+  }
+} }
+</code></pre></div>
+<p>未配置任何要求时，<code>result.requirements</code> 为 <code>null</code>。当 <code>result.supportsIndependentSpeedModes</code> 为 <code>true</code> 时，<code>fast_mode</code> 和 <code>ultrafast_mode</code> 要求各自独立生效。较旧的服务器会省略该字段，并对两者都使用 <code>fast_mode</code>。有关受支持的键和值，请参阅 <a href="https://learn.chatgpt.com/docs/config-file/config-reference#requirementstoml"><code>requirements.toml</code> 参考</a>。</p>
+<h3 id="read-admin-requirements-configrequirementsread">Windows 沙箱设置（<code>windowsSandbox/setupStart</code>）<a class="anchor" href="#read-admin-requirements-configrequirementsread">#</a></h3>
+<p>在提示进行设置之前，请先调用 <code>windowsSandbox/readiness</code>。MXC 和已配置的旧版沙箱都可能返回 <code>ready</code>。如果旧版沙箱返回 <code>updateRequired</code>，请调用 <code>windowsSandbox/setupStart</code> 以异步方式启动设置。如果 Windows 沙箱被禁用，或主机运行的是其他操作系统，就绪检查会返回 <code>notConfigured</code>。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;windowsSandbox/setupStart&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">53</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;mode&quot;</span>: <span class="tk-str">&quot;elevated&quot;</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">53</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;started&quot;</span>: <span class="tk-num">true</span> } }
+</code></pre></div>
+<p>App-server 会在后台启动设置，随后发出一条完成通知：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;windowsSandbox/setupCompleted&quot;</span>,
+  <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;mode&quot;</span>: <span class="tk-str">&quot;elevated&quot;</span>, <span class="tk-num">&quot;success&quot;</span>: <span class="tk-num">true</span>, <span class="tk-num">&quot;error&quot;</span>: <span class="tk-num">null</span> }
+}
+</code></pre></div>
+<p>模式：</p>
+<ul>
+<li><code>elevated</code> —— 运行提权的 Windows 沙箱设置路径。</li>
+<li><code>unelevated</code> —— 运行旧版的设置/预检路径。</li>
+</ul>
+<h2 id="windows-sandbox-setup-windowssandboxsetupstart">文件系统<a class="anchor" href="#windows-sandbox-setup-windowssandboxsetupstart">#</a></h2>
+<p>v2 文件系统 API 基于绝对路径操作。当客户端需要在文件或目录发生变化后使 UI 状态失效时，可使用 <code>fs/watch</code>。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;fs/watch&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">54</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;watchId&quot;</span>: <span class="tk-str">&quot;0195ec6b-1d6f-7c2e-8c7a-56f2c4a8b9d1&quot;</span>,
+  <span class="tk-num">&quot;path&quot;</span>: <span class="tk-str">&quot;/Users/me/project/.git/HEAD&quot;</span>
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">54</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;path&quot;</span>: <span class="tk-str">&quot;/Users/me/project/.git/HEAD&quot;</span> } }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;fs/changed&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;watchId&quot;</span>: <span class="tk-str">&quot;0195ec6b-1d6f-7c2e-8c7a-56f2c4a8b9d1&quot;</span>,
+  <span class="tk-num">&quot;changedPaths&quot;</span>: [<span class="tk-str">&quot;/Users/me/project/.git/HEAD&quot;</span>]
+} }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;fs/unwatch&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">55</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;watchId&quot;</span>: <span class="tk-str">&quot;0195ec6b-1d6f-7c2e-8c7a-56f2c4a8b9d1&quot;</span>
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">55</span>, <span class="tk-num">&quot;result&quot;</span>: {} }
+</code></pre></div>
+<p>监视某个文件会针对该文件路径发出 <code>fs/changed</code>，包括通过替换或重命名操作带来的更新。</p>
+<h2 id="filesystem">事件<a class="anchor" href="#filesystem">#</a></h2>
+<p>事件通知是服务器发起的流，涵盖线程生命周期、轮次生命周期以及其中的各个项。启动或恢复线程之后，应持续读取活动的传输流，以获取 <code>thread/started</code>、<code>thread/archived</code>、<code>thread/unarchived</code>、<code>thread/closed</code>、<code>thread/status/changed</code>、<code>turn/*</code>、<code>item/*</code> 和 <code>serverRequest/resolved</code> 通知。</p>
+<h3 id="events">通知选择退出（opt-out）<a class="anchor" href="#events">#</a></h3>
+<p>客户端可以通过在 <code>initialize.params.capabilities.optOutNotificationMethods</code> 中发送精确的方法名，按连接屏蔽特定通知。</p>
+<ul>
+<li>仅精确匹配：<code>item/agentMessage/delta</code> 只屏蔽该方法。</li>
+<li>未知的方法名会被忽略。</li>
+<li>适用于当前的 <code>thread/*</code>、<code>turn/*</code>、<code>item/*</code> 以及相关的 v2 通知。</li>
+<li>不适用于请求、响应或错误。</li>
+</ul>
+<h3 id="notification-opt-out">模糊文件搜索事件（实验性）<a class="anchor" href="#notification-opt-out">#</a></h3>
+<p>模糊文件搜索会话 API 会按查询发出通知：</p>
+<ul>
+<li><code>fuzzyFileSearch/sessionUpdated</code> —— <code>{ sessionId, query, files }</code>，包含当前查询的最新匹配结果。</li>
+<li><code>fuzzyFileSearch/sessionCompleted</code> —— 该查询的索引和匹配完成后发出 <code>{ sessionId }</code>。</li>
+</ul>
+<h3 id="fuzzy-file-search-events-experimental">警告事件<a class="anchor" href="#fuzzy-file-search-events-experimental">#</a></h3>
+<ul>
+<li><code>configWarning</code> —— <code>{ summary, details?, path?, range? }</code>，用于可恢复的配置或初始化问题。</li>
+<li><code>warning</code> —— <code>{ threadId?, message }</code>，用于非致命的运行时警告。</li>
+</ul>
+<h3 id="warning-events">Windows 沙箱设置事件<a class="anchor" href="#warning-events">#</a></h3>
+<ul>
+<li><code>windowsSandbox/setupCompleted</code> —— 在 <code>windowsSandbox/setupStart</code> 请求结束后发出 <code>{ mode, success, error }</code>。</li>
+</ul>
+<h3 id="windows-sandbox-setup-events">轮次事件<a class="anchor" href="#windows-sandbox-setup-events">#</a></h3>
+<ul>
+<li><code>turn/started</code> —— <code>{ turn }</code>，包含轮次 ID、空的 <code>items</code> 以及 <code>status: "inProgress"</code>。</li>
+<li><code>turn/completed</code> —— <code>{ turn }</code>，其中 <code>turn.status</code> 为 <code>completed</code>、<code>interrupted</code> 或 <code>failed</code>；失败时会携带 <code>{ error: { message, codexErrorInfo?, additionalDetails? } }</code>。</li>
+<li><code>turn/diff/updated</code> —— <code>{ threadId, turnId, diff }</code>，包含轮次内所有文件变更的最新聚合统一 diff。</li>
+<li><code>turn/plan/updated</code> —— 每当智能体（agent）分享或更改其计划时发出 <code>{ turnId, explanation?, plan }</code>；每个 <code>plan</code> 条目为 <code>{ step, status }</code>，其中 <code>status</code> 为 <code>pending</code>、<code>inProgress</code> 或 <code>completed</code>。</li>
+<li><code>hook/started</code> 和 <code>hook/completed</code> —— 同步生命周期钩子启动时，以及其最终运行摘要可用时，发出 <code>{ threadId, turnId?, run }</code>。异步钩子不会发出这些通知。</li>
+<li><code>model/safetyBuffering/updated</code> —— 当响应进入瞬态安全缓冲时发出 <code>{ threadId, turnId, model, useCases, reasons, showBufferingUi, fasterModel }</code>。</li>
+<li><code>model/rerouted</code> —— 当服务将请求路由到另一个模型时发出 <code>{ threadId, turnId, fromModel, toModel, reason }</code>。</li>
+<li><code>model/verification</code> —— 当服务要求额外的账户验证时发出 <code>{ threadId, turnId, verifications }</code>。</li>
+<li><code>thread/tokenUsage/updated</code> —— 活动线程的 token 用量更新。</li>
+</ul>
+<p><code>turn/diff/updated</code> 和 <code>turn/plan/updated</code> 目前即使在项事件流式传输时也会包含空的 <code>items</code> 数组。请将 <code>item/*</code> 通知作为轮次项的权威来源。</p>
+<h3 id="turn-events">项<a class="anchor" href="#turn-events">#</a></h3>
+<p><code>ThreadItem</code> 是轮次响应和 <code>item/*</code> 通知中携带的标签联合类型（tagged union）。常见的项类型包括：</p>
+<ul>
+<li><code>userMessage</code> —— <code>{id, content}</code>，其中 <code>content</code> 是一个用户输入列表（<code>text</code>、<code>image</code> 或 <code>localImage</code>）。</li>
+<li><code>functionCallOutput</code> —— <code>{id, name, namespace, output}</code>，用于通过 <code>turn/start.toolOutput</code> 提供的独立工具输出。<code>namespace</code> 可以为 <code>null</code>。</li>
+<li><code>agentMessage</code> —— <code>{id, text, phase?}</code>，包含累积的智能体回复。存在时，<code>phase</code> 使用 Responses API 的线上传输值（<code>commentary</code>、<code>partial_answer</code>、<code>final_answer</code>）。<code>partial_answer</code> 是稳定的答案文本，其后可能还有更多输出或工具调用。</li>
+<li><code>plan</code> —— <code>{id, text}</code>，包含计划模式下提出的计划文本。请以 <code>item/completed</code> 中的最终 <code>plan</code> 项为准。</li>
+<li><code>reasoning</code> —— <code>{id, summary, content}</code>，其中 <code>summary</code> 保存流式传输的推理摘要，<code>content</code> 保存原始推理块。</li>
+<li><code>commandExecution</code> —— <code>{id, command, cwd, status, commandActions, aggregatedOutput?, exitCode?, durationMs?}</code>。</li>
+<li><code>fileChange</code> —— <code>{id, changes, status}</code>，描述提议的编辑；<code>changes</code> 列出 <code>{path, kind, diff}</code>。</li>
+<li><code>mcpToolCall</code> —— 记录调用的 <code>id</code>、<code>server</code>、<code>tool</code>、<code>status</code> 和 <code>arguments</code>。
+  该调用还包含 <code>appContext</code>、<code>mcpAppUi</code>、<code>pluginId</code>、<code>readOnlyHint</code>、<code>result</code>、<code>error</code> 和 <code>durationMs</code>。这些字段均可以为 <code>null</code>。旧版 <code>mcpAppResourceUri</code> 字段为可选。
+  对于受信任的 MCP 应用，<code>appContext</code> 包含 <code>connectorId</code>。它的其他字段（<code>linkId</code>、<code>resourceUri</code>、<code>appName</code> 和 <code>actionName</code>）可以为 <code>null</code>。
+  当工具描述符指定了资源 URI 和显示模式（<code>inline</code> 或 <code>fullscreen</code>）时，<code>mcpAppUi</code> 包含 <code>resourceUri</code> 和 <code>preferredModelDisplayMode</code>。对于未保存此展示元数据的调用，app-server 会为 <code>mcpAppUi</code> 返回 <code>null</code>。</li>
+<li><code>dynamicToolCall</code> —— <code>{id, tool, arguments, status, contentItems?, success?, durationMs?}</code>，用于由客户端执行的动态工具调用。</li>
+<li><code>collabToolCall</code> —— <code>{id, tool, status, senderThreadId, receiverThreadId?, newThreadId?, prompt?, agentStatus?}</code>。</li>
+<li><code>webSearch</code> —— <code>{id, query, action?}</code>，用于智能体发出的网页搜索请求。</li>
+<li><code>imageView</code> —— 智能体调用图片查看器工具时发出 <code>{id, path}</code>。</li>
+<li><code>enteredReviewMode</code> —— 审查器启动时发送 <code>{id, review}</code>。</li>
+<li><code>exitedReviewMode</code> —— 审查器完成时发出 <code>{id, review}</code>。</li>
+<li><code>contextCompaction</code> —— 当 Codex 压缩（compaction）对话历史时发出 <code>{id}</code>。</li>
+</ul>
+<p>对于 <code>webSearch.action</code>，动作 <code>type</code> 可以为 <code>search</code>（<code>query?</code>、<code>queries?</code>）、<code>openPage</code>（<code>url?</code>）或 <code>findInPage</code>（<code>url?</code>、<code>pattern?</code>）。</p>
+<p>app server 已弃用旧版的 <code>thread/compacted</code> 通知；请改用 <code>contextCompaction</code> 项。</p>
+<p>所有项都会发出两个共享的生命周期事件：</p>
+<ul>
+<li><code>item/started</code> —— 在新的工作单元开始时发出完整的 <code>item</code>；<code>item.id</code> 与增量所使用的 <code>itemId</code> 一致。</li>
+<li><code>item/completed</code> —— 在工作结束时发送最终的 <code>item</code>；请将其视为权威状态。</li>
+</ul>
+<h3 id="items">项增量<a class="anchor" href="#items">#</a></h3>
+<ul>
+<li><code>item/agentMessage/delta</code> —— 为智能体消息追加流式文本。</li>
+<li><code>item/plan/delta</code> —— 流式传输提议的计划文本。最终的 <code>plan</code> 项可能与拼接后的增量不完全一致。</li>
+<li><code>item/reasoning/summaryTextDelta</code> —— 流式传输可读的推理摘要；当新的摘要小节开启时，<code>summaryIndex</code> 会递增。</li>
+<li><code>item/reasoning/summaryPartAdded</code> —— 标记推理摘要小节之间的边界。</li>
+<li><code>item/reasoning/textDelta</code> —— 流式传输原始推理文本（在模型支持时）。</li>
+<li><code>item/commandExecution/outputDelta</code> —— 流式传输命令的 stdout/stderr；请按顺序追加各增量。</li>
+<li><code>item/fileChange/outputDelta</code> —— 已弃用的兼容性通知，用于旧版 <code>apply_patch</code> 文本输出。当前版本的 app-server 不再发出该通知；请改用 <code>fileChange</code> 项和 <code>turn/diff/updated</code>。</li>
+</ul>
+<h2 id="item-deltas">错误<a class="anchor" href="#item-deltas">#</a></h2>
+<p>当 app-server 在优雅关闭期间拒绝新工作时，会返回一个 JSON-RPC 错误，其错误码为 <code>-32600</code>，且 <code>data.reason</code> 为 <code>serverShuttingDown</code>。</p>
+<p><code>error</code> 通知包含一个嵌套的 <code>error</code> 对象，其中有 <code>message</code> 和可选的 <code>additionalDetails</code>。其 <code>codexErrorInfo</code> 字段可以为 <code>null</code>。如果 <code>willRetry</code> 为 <code>true</code>，服务器会重试，且该轮次保持活动状态。失败的轮次以 <code>status: "failed"</code> 结束。常见的 <code>codexErrorInfo</code> 值包括 <code>contextWindowExceeded</code>、<code>usageLimitExceeded</code>、<code>badRequest</code>、<code>unauthorized</code> 和 <code>sandboxError</code>。对于上游请求失败，该值可以是诸如 <code>{ "httpConnectionFailed": { "httpStatusCode": 503 } }</code> 的对象。</p>
+<h2 id="errors">审批<a class="anchor" href="#errors">#</a></h2>
+<p>取决于用户的 Codex 设置，命令执行和文件更改可能需要审批。app-server 会向客户端发送一个由服务器发起的 JSON-RPC 请求，客户端则以一个决策负载进行响应。</p>
+<ul>
+<li>命令执行决策：<code>accept</code>、<code>acceptForSession</code>、<code>decline</code>、<code>cancel</code> 或 <code>{ "acceptWithExecpolicyAmendment": { "execpolicy_amendment": ["cmd", "..."] } }</code>。</li>
+<li>
+<p>文件更改决策：<code>accept</code>、<code>acceptForSession</code>、<code>decline</code>、<code>cancel</code>。</p>
+</li>
+<li>
+<p>请求包含 <code>threadId</code> 和 <code>turnId</code> —— 用它们将 UI 状态限定到当前活动对话。</p>
+</li>
+<li>服务器会恢复或拒绝该工作，并以 <code>item/completed</code> 结束该项。</li>
+</ul>
+<h3 id="approvals">命令执行审批<a class="anchor" href="#approvals">#</a></h3>
+<p>消息顺序：</p>
+<ol>
+<li><code>item/started</code> 显示处于等待状态的 <code>commandExecution</code> 项，其中包含 <code>command</code>、<code>cwd</code> 和其他字段。</li>
+<li><code>item/commandExecution/requestApproval</code> 包含 <code>itemId</code>、<code>threadId</code>、<code>turnId</code>、可选的 <code>reason</code>、可选的 <code>command</code>、可选的 <code>cwd</code>、可选的 <code>commandActions</code>、可选的 <code>proposedExecpolicyAmendment</code>、可选的 <code>networkApprovalContext</code> 以及可选的 <code>availableDecisions</code>。当 <code>initialize.params.capabilities.experimentalApi = true</code> 时，负载还可以包含实验性的 <code>additionalPermissions</code>，用于描述所请求的逐命令沙箱访问权限。<code>additionalPermissions</code> 中的任何文件系统路径在传输时均为绝对路径。</li>
+<li>客户端使用上述命令执行审批决策之一进行响应。</li>
+<li><code>serverRequest/resolved</code> 确认等待中的请求已被应答或清除。</li>
+<li><code>item/completed</code> 返回最终的 <code>commandExecution</code> 项，其 <code>status</code> 为 <code>completed | failed | declined</code>。</li>
+</ol>
+<p>当存在 <code>networkApprovalContext</code> 时，该提示针对的是受管理的网络访问（而不是一般的 shell 命令审批）。当前的 v2 schema 会公开目标 <code>host</code> 和 <code>protocol</code>；客户端应渲染针对网络的提示，而不应依赖 <code>command</code> 作为对用户有意义的 shell 命令预览。</p>
+<p>Codex 会按目标（<code>host</code>、协议和端口）对并发的网络审批提示进行分组。因此，app-server 可能会发送一个提示来同时放行多个发往同一目标的排队请求，而同一主机上的不同端口会被单独处理。</p>
+<h3 id="command-execution-approvals">文件更改审批<a class="anchor" href="#command-execution-approvals">#</a></h3>
+<p>消息顺序：</p>
+<ol>
+<li><code>item/started</code> 发出一个 <code>fileChange</code> 项，其中包含提议的 <code>changes</code> 和 <code>status: "inProgress"</code>。</li>
+<li><code>item/fileChange/requestApproval</code> 包含 <code>itemId</code>、<code>threadId</code>、<code>turnId</code>、可选的 <code>reason</code> 以及可选的 <code>grantRoot</code>。</li>
+<li>客户端使用上述文件更改审批决策之一进行响应。</li>
+<li><code>serverRequest/resolved</code> 确认等待中的请求已被应答或清除。</li>
+<li><code>item/completed</code> 返回最终的 <code>fileChange</code> 项，其 <code>status</code> 为 <code>completed | failed | declined</code>。</li>
+</ol>
+<h3 id="file-change-approvals"><code>tool/requestUserInput</code><a class="anchor" href="#file-change-approvals">#</a></h3>
+<p>当客户端响应 <code>item/tool/requestUserInput</code> 时，app-server 会发出带有 <code>{ threadId, requestId }</code> 的 <code>serverRequest/resolved</code>。如果在客户端应答之前，等待中的请求因轮次启动、轮次完成或轮次中断而被清除，服务器会针对该清理发出同样的通知。</p>
+<p>请求参数包含 <code>autoResolutionMs</code>，它是一个整数毫秒超时值或 <code>null</code>。存在该参数时，如果用户没有应答，宿主客户端可以在该时间间隔后自动应答该提示。</p>
+<h3 id="toolrequestuserinput">权限请求<a class="anchor" href="#toolrequestuserinput">#</a></h3>
+<p>内置的 <code>request_permissions</code> 工具会发送 <code>item/permissions/requestApproval</code>，其中包含 <code>threadId</code>、<code>turnId</code>、<code>itemId</code>、<code>environmentId</code>、<code>cwd</code>、可选的 <code>reason</code>，以及所请求的网络或文件系统权限。响应时请使用 <code>permissions</code>，且其中仅包含被授予的子集。将 <code>scope</code> 设为 <code>"session"</code> 可将授权持久化到同一会话中的后续轮次；省略它或使用 <code>"turn"</code> 则为轮次范围的授权。未被请求的权限会被忽略。</p>
+<h3 id="permission-requests">MCP 服务器引导（elicitation）请求<a class="anchor" href="#permission-requests">#</a></h3>
+<p>MCP 服务器可以通过 <code>mcpServer/elicitation/request</code> 中断一个轮次。该请求包含 <code>threadId</code>、可选的 <code>turnId</code>、<code>serverName</code>，以及以下请求形式之一：</p>
+<ul>
+<li><code>mode: "form"</code> 或 <code>mode: "openai/form"</code>，附带 <code>message</code> 和 <code>requestedSchema</code>。</li>
+<li><code>mode: "url"</code>，附带 <code>message</code>、<code>url</code> 和 <code>elicitationId</code>。</li>
+</ul>
+<p>以 <code>action: "accept"</code> 和所请求的 <code>content</code> 进行响应，或以 <code>action: "decline"</code> 或 <code>"cancel"</code> 以及 <code>content: null</code> 进行响应。随后 app-server 会发出 <code>serverRequest/resolved</code>。若要接收 <code>openai/form</code> 变体，请通过 <code>initialize.params.capabilities.mcpServerOpenaiFormElicitation</code> 选择启用。</p>
+<h3 id="mcp-server-elicitation-requests">动态工具调用（实验性）<a class="anchor" href="#mcp-server-elicitation-requests">#</a></h3>
+<p><code>thread/start</code> 上的 <code>dynamicTools</code> 以及相应的 <code>item/tool/call</code> 请求或响应流均为实验性 API。</p>
+<p>动态工具名和命名空间名必须遵循 Responses API 的命名约束。请避免使用 Codex 内置工具所用的保留命名空间名。</p>
+<p>当在轮次期间调用动态工具时，app-server 会发出：</p>
+<ol>
+<li><code>item/started</code>，其中 <code>item.type = "dynamicToolCall"</code>、<code>status = "inProgress"</code>，外加 <code>tool</code> 和 <code>arguments</code>。</li>
+<li><code>item/tool/call</code>，作为发送给客户端的服务器请求。</li>
+<li>客户端响应负载，其中包含返回的内容项。</li>
+<li><code>item/completed</code>，其中 <code>item.type = "dynamicToolCall"</code>、最终的 <code>status</code>，以及任何返回的 <code>contentItems</code> 或 <code>success</code> 值。</li>
+</ol>
+<h3 id="dynamic-tool-calls-experimental">MCP 工具调用审批（应用）<a class="anchor" href="#dynamic-tool-calls-experimental">#</a></h3>
+<p>应用（连接器）工具调用也可能需要审批。当应用工具调用具有副作用时，服务器可以通过 <code>tool/requestUserInput</code> 征求审批，选项包括<strong>接受（Accept）</strong>、<strong>拒绝（Decline）</strong>和<strong>取消（Cancel）</strong>。破坏性工具注解始终会触发审批，即使该工具还宣告了权限更低的提示。如果用户拒绝或取消，相关的 <code>mcpToolCall</code> 项会以错误结束，而不会运行该工具。</p>
+<h2 id="mcp-tool-call-approvals-apps">技能（Skills）<a class="anchor" href="#mcp-tool-call-approvals-apps">#</a></h2>
+<p>在用户文本输入中包含 <code>$&lt;skill-name&gt;</code> 即可调用某个技能。再添加一个 <code>skill</code> 输入项（推荐），让服务器注入完整的技能指令，而不是依赖模型去解析该名称。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;turn/start&quot;</span>,
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">101</span>,
+  <span class="tk-num">&quot;params&quot;</span>: {
+    <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thread-1&quot;</span>,
+    <span class="tk-num">&quot;input&quot;</span>: [
+      {
+        <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;text&quot;</span>,
+        <span class="tk-num">&quot;text&quot;</span>: <span class="tk-str">&quot;$skill-creator Add a new skill for triaging flaky CI.&quot;</span>
+      },
+      {
+        <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;skill&quot;</span>,
+        <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;skill-creator&quot;</span>,
+        <span class="tk-num">&quot;path&quot;</span>: <span class="tk-str">&quot;/Users/me/.codex/skills/skill-creator/SKILL.md&quot;</span>
+      }
+    ]
+  }
+}
+</code></pre></div>
+<p>如果省略 <code>skill</code> 项，模型仍会解析 <code>$&lt;skill-name&gt;</code> 标记并尝试定位该技能，但这可能增加延迟。</p>
+<p>示例：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-text">$skill-creator Add a new skill for triaging flaky CI and include step-by-step usage.
+</code></pre></div>
+<p>使用 <code>skills/list</code> 获取可用技能（可选择用 <code>cwds</code> 限定范围，并配合 <code>forceReload</code>）。你还可以包含 <code>perCwdExtraUserRoots</code>，为特定的 <code>cwd</code> 值把额外的绝对路径作为 <code>user</code> 作用域来扫描。App-server 会忽略其 <code>cwd</code> 未出现在 <code>cwds</code> 中的条目。<code>skills/list</code> 可能会复用按 <code>cwd</code> 缓存的结果；设置 <code>forceReload: true</code> 可从磁盘刷新。存在 <code>SKILL.json</code> 时，服务器会从中读取 <code>interface</code> 和 <code>dependencies</code>。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;skills/list&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">25</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;cwds&quot;</span>: [<span class="tk-str">&quot;/Users/me/project&quot;</span>, <span class="tk-str">&quot;/Users/me/other-project&quot;</span>],
+  <span class="tk-num">&quot;forceReload&quot;</span>: <span class="tk-num">true</span>,
+  <span class="tk-num">&quot;perCwdExtraUserRoots&quot;</span>: [
+    {
+      <span class="tk-num">&quot;cwd&quot;</span>: <span class="tk-str">&quot;/Users/me/project&quot;</span>,
+      <span class="tk-num">&quot;extraUserRoots&quot;</span>: [<span class="tk-str">&quot;/Users/me/shared-skills&quot;</span>]
+    }
+  ]
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">25</span>, <span class="tk-num">&quot;result&quot;</span>: {
+  <span class="tk-num">&quot;data&quot;</span>: [{
+    <span class="tk-num">&quot;cwd&quot;</span>: <span class="tk-str">&quot;/Users/me/project&quot;</span>,
+    <span class="tk-num">&quot;skills&quot;</span>: [
+      {
+        <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;skill-creator&quot;</span>,
+        <span class="tk-num">&quot;description&quot;</span>: <span class="tk-str">&quot;Create or update a Codex skill&quot;</span>,
+        <span class="tk-num">&quot;enabled&quot;</span>: <span class="tk-num">true</span>,
+        <span class="tk-num">&quot;interface&quot;</span>: {
+          <span class="tk-num">&quot;displayName&quot;</span>: <span class="tk-str">&quot;Skill Creator&quot;</span>,
+          <span class="tk-num">&quot;shortDescription&quot;</span>: <span class="tk-str">&quot;Create or update a Codex skill&quot;</span>
+        },
+        <span class="tk-num">&quot;dependencies&quot;</span>: {
+          <span class="tk-num">&quot;tools&quot;</span>: [
+            {
+              <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;env_var&quot;</span>,
+              <span class="tk-num">&quot;value&quot;</span>: <span class="tk-str">&quot;GITHUB_TOKEN&quot;</span>,
+              <span class="tk-num">&quot;description&quot;</span>: <span class="tk-str">&quot;GitHub API token&quot;</span>
+            },
+            {
+              <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;mcp&quot;</span>,
+              <span class="tk-num">&quot;value&quot;</span>: <span class="tk-str">&quot;github&quot;</span>,
+              <span class="tk-num">&quot;transport&quot;</span>: <span class="tk-str">&quot;streamable_http&quot;</span>,
+              <span class="tk-num">&quot;url&quot;</span>: <span class="tk-str">&quot;https://example.com/mcp&quot;</span>
+            }
+          ]
+        }
+      }
+    ],
+    <span class="tk-num">&quot;errors&quot;</span>: []
+  }]
+} }
+</code></pre></div>
+<p>当被监视的本地技能文件发生变化时，服务器还会发出 <code>skills/changed</code> 通知。请将其视为失效信号，并在需要时用当前参数重新运行 <code>skills/list</code>。</p>
+<p>按路径启用或禁用某个技能：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;skills/config/write&quot;</span>,
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">26</span>,
+  <span class="tk-num">&quot;params&quot;</span>: {
+    <span class="tk-num">&quot;path&quot;</span>: <span class="tk-str">&quot;/Users/me/.codex/skills/skill-creator/SKILL.md&quot;</span>,
+    <span class="tk-num">&quot;enabled&quot;</span>: <span class="tk-num">false</span>
+  }
+}
+</code></pre></div>
+<h2 id="skills">应用（Apps）与连接器（connectors）<a class="anchor" href="#skills">#</a></h2>
+<p>使用 <code>app/installed</code> 读取最新提交的已安装应用运行时快照。每个结果都包含应用 <code>id</code>、<code>runtimeName</code>（或 <code>null</code>）、生效的 <code>enabled</code> 状态和 <code>callable</code> 状态。只有当生效配置启用了该应用，且至少有一个模型可见的工具符合应用与工具策略时，应用才是可调用的。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;app/installed&quot;</span>,
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">49</span>,
+  <span class="tk-num">&quot;params&quot;</span>: {
+    <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thread-1&quot;</span>,
+    <span class="tk-num">&quot;forceRefresh&quot;</span>: <span class="tk-num">false</span>
+  }
+}
+{
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">49</span>,
+  <span class="tk-num">&quot;result&quot;</span>: {
+    <span class="tk-num">&quot;apps&quot;</span>: [
+      {
+        <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;demo-app&quot;</span>,
+        <span class="tk-num">&quot;runtimeName&quot;</span>: <span class="tk-str">&quot;Demo App&quot;</span>,
+        <span class="tk-num">&quot;enabled&quot;</span>: <span class="tk-num">true</span>,
+        <span class="tk-num">&quot;callable&quot;</span>: <span class="tk-num">true</span>
+      }
+    ]
+  }
+}
+</code></pre></div>
+<p>省略 <code>threadId</code> 可使用全局配置，而不是已加载线程（thread）的配置。设置 <code>forceRefresh: true</code> 可在读取前刷新连接器运行时快照。当全局或工作区策略阻止应用访问时，被观测到的应用仍可能出现在结果中，但其 <code>enabled</code> 和 <code>callable</code> 为 <code>false</code>。</p>
+<p>使用 <code>app/list</code> 获取可用应用。在 CLI/TUI 中，<code>/apps</code> 是面向用户的选择器；在自定义客户端中，可直接调用 <code>app/list</code>。每个条目都同时包含 <code>isAccessible</code>（对用户可用）和 <code>isEnabled</code>（在 <code>config.toml</code> 中已启用），以便客户端区分安装/访问与本地启用状态。应用条目还可以包含可选的 <code>branding</code>、<code>appMetadata</code> 和 <code>labels</code> 字段。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;app/list&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">50</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;cursor&quot;</span>: <span class="tk-num">null</span>,
+  <span class="tk-num">&quot;limit&quot;</span>: <span class="tk-num">50</span>,
+  <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thread-1&quot;</span>,
+  <span class="tk-num">&quot;forceRefetch&quot;</span>: <span class="tk-num">false</span>
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">50</span>, <span class="tk-num">&quot;result&quot;</span>: {
+  <span class="tk-num">&quot;data&quot;</span>: [
+    {
+      <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;demo-app&quot;</span>,
+      <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;Demo App&quot;</span>,
+      <span class="tk-num">&quot;description&quot;</span>: <span class="tk-str">&quot;Example connector for documentation.&quot;</span>,
+      <span class="tk-num">&quot;logoUrl&quot;</span>: <span class="tk-str">&quot;https://example.com/demo-app.png&quot;</span>,
+      <span class="tk-num">&quot;logoUrlDark&quot;</span>: <span class="tk-num">null</span>,
+      <span class="tk-num">&quot;distributionChannel&quot;</span>: <span class="tk-num">null</span>,
+      <span class="tk-num">&quot;branding&quot;</span>: <span class="tk-num">null</span>,
+      <span class="tk-num">&quot;appMetadata&quot;</span>: <span class="tk-num">null</span>,
+      <span class="tk-num">&quot;labels&quot;</span>: <span class="tk-num">null</span>,
+      <span class="tk-num">&quot;installUrl&quot;</span>: <span class="tk-str">&quot;https://chatgpt.com/apps/demo-app/demo-app&quot;</span>,
+      <span class="tk-num">&quot;isAccessible&quot;</span>: <span class="tk-num">true</span>,
+      <span class="tk-num">&quot;isEnabled&quot;</span>: <span class="tk-num">true</span>
+    }
+  ],
+  <span class="tk-num">&quot;nextCursor&quot;</span>: <span class="tk-num">null</span>
+} }
+</code></pre></div>
+<p>如果提供 <code>threadId</code>，应用功能门控（<code>features.apps</code>）会使用该线程的配置快照；省略时，app-server 使用最新的全局配置。</p>
+<p><code>app/list</code> 会在可访问应用和目录应用都加载完成后才返回。设置 <code>forceRefetch: true</code> 可绕过应用缓存获取新数据。只有刷新成功时才会替换缓存条目。</p>
+<p>每当任一数据源（可访问应用或目录应用）加载完成时，服务器还会发出 <code>app/list/updated</code> 通知。每条通知都包含最新合并后的应用列表。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;app/list/updated&quot;</span>,
+  <span class="tk-num">&quot;params&quot;</span>: {
+    <span class="tk-num">&quot;data&quot;</span>: [
+      {
+        <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;demo-app&quot;</span>,
+        <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;Demo App&quot;</span>,
+        <span class="tk-num">&quot;description&quot;</span>: <span class="tk-str">&quot;Example connector for documentation.&quot;</span>,
+        <span class="tk-num">&quot;logoUrl&quot;</span>: <span class="tk-str">&quot;https://example.com/demo-app.png&quot;</span>,
+        <span class="tk-num">&quot;logoUrlDark&quot;</span>: <span class="tk-num">null</span>,
+        <span class="tk-num">&quot;distributionChannel&quot;</span>: <span class="tk-num">null</span>,
+        <span class="tk-num">&quot;branding&quot;</span>: <span class="tk-num">null</span>,
+        <span class="tk-num">&quot;appMetadata&quot;</span>: <span class="tk-num">null</span>,
+        <span class="tk-num">&quot;labels&quot;</span>: <span class="tk-num">null</span>,
+        <span class="tk-num">&quot;installUrl&quot;</span>: <span class="tk-str">&quot;https://chatgpt.com/apps/demo-app/demo-app&quot;</span>,
+        <span class="tk-num">&quot;isAccessible&quot;</span>: <span class="tk-num">true</span>,
+        <span class="tk-num">&quot;isEnabled&quot;</span>: <span class="tk-num">true</span>
+      }
+    ]
+  }
+}
+</code></pre></div>
+<p>当你已经知道应用 ID、需要的是应用元数据而不是已安装运行时状态时，使用 <code>app/read</code>。最多传入 100 个 <code>appIds</code>。服务器只保留每个重复 ID 的首次出现，并在 <code>apps</code> 和 <code>missingAppIds</code> 中保持该顺序。未知或不可访问的应用会在 <code>missingAppIds</code> 中返回，而不会让整个请求失败。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;app/read&quot;</span>,
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">52</span>,
+  <span class="tk-num">&quot;params&quot;</span>: {
+    <span class="tk-num">&quot;appIds&quot;</span>: [<span class="tk-str">&quot;demo-app&quot;</span>, <span class="tk-str">&quot;missing-app&quot;</span>],
+    <span class="tk-num">&quot;includeTools&quot;</span>: <span class="tk-num">true</span>
+  }
+}
+{
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">52</span>,
+  <span class="tk-num">&quot;result&quot;</span>: {
+    <span class="tk-num">&quot;apps&quot;</span>: [
+      {
+        <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;demo-app&quot;</span>,
+        <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;Demo App&quot;</span>,
+        <span class="tk-num">&quot;description&quot;</span>: <span class="tk-str">&quot;Example connector for documentation.&quot;</span>,
+        <span class="tk-num">&quot;iconUrl&quot;</span>: <span class="tk-num">null</span>,
+        <span class="tk-num">&quot;iconUrlDark&quot;</span>: <span class="tk-num">null</span>,
+        <span class="tk-num">&quot;distributionChannel&quot;</span>: <span class="tk-num">null</span>,
+        <span class="tk-num">&quot;installUrl&quot;</span>: <span class="tk-num">null</span>,
+        <span class="tk-num">&quot;pluginDisplayNames&quot;</span>: [],
+        <span class="tk-num">&quot;toolSummaries&quot;</span>: [
+          {
+            <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;search&quot;</span>,
+            <span class="tk-num">&quot;title&quot;</span>: <span class="tk-str">&quot;Search&quot;</span>,
+            <span class="tk-num">&quot;description&quot;</span>: <span class="tk-str">&quot;Search the app.&quot;</span>,
+            <span class="tk-num">&quot;isEnabled&quot;</span>: <span class="tk-num">true</span>,
+            <span class="tk-num">&quot;disabledReason&quot;</span>: <span class="tk-num">null</span>,
+            <span class="tk-num">&quot;isReadOnly&quot;</span>: <span class="tk-num">true</span>
+          }
+        ]
+      }
+    ],
+    <span class="tk-num">&quot;missingAppIds&quot;</span>: [<span class="tk-str">&quot;missing-app&quot;</span>]
+  }
+}
+</code></pre></div>
+<p>设置 <code>includeTools: true</code> 可请求仅供展示的公开工具摘要。元数据响应不包含已安装应用的运行时状态，也不会授权工具调用；请使用 <code>app/installed</code> 检查生效的 <code>enabled</code> 和 <code>callable</code> 状态。</p>
+<p>调用应用的方式是：在文本输入中插入 <code>$&lt;app-slug&gt;</code>，并添加一个带 <code>app://&lt;id&gt;</code> 路径的 <code>mention</code> 输入项（推荐）。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;turn/start&quot;</span>,
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">51</span>,
+  <span class="tk-num">&quot;params&quot;</span>: {
+    <span class="tk-num">&quot;threadId&quot;</span>: <span class="tk-str">&quot;thread-1&quot;</span>,
+    <span class="tk-num">&quot;input&quot;</span>: [
+      {
+        <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;text&quot;</span>,
+        <span class="tk-num">&quot;text&quot;</span>: <span class="tk-str">&quot;$demo-app Pull the latest updates from the team.&quot;</span>
+      },
+      {
+        <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;mention&quot;</span>,
+        <span class="tk-num">&quot;name&quot;</span>: <span class="tk-str">&quot;Demo App&quot;</span>,
+        <span class="tk-num">&quot;path&quot;</span>: <span class="tk-str">&quot;app://demo-app&quot;</span>
+      }
+    ]
+  }
+}
+</code></pre></div>
+<h3 id="apps-connectors">应用设置的 Config RPC 示例<a class="anchor" href="#apps-connectors">#</a></h3>
+<p>使用 <code>config/read</code>、<code>config/value/write</code> 和 <code>config/batchWrite</code> 检查或更新 <code>config.toml</code> 中的应用控制项。</p>
+<p>读取生效的应用配置结构（包括 <code>_default</code> 和针对各工具的覆盖设置）：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;config/read&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">60</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;includeLayers&quot;</span>: <span class="tk-num">false</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">60</span>, <span class="tk-num">&quot;result&quot;</span>: {
+  <span class="tk-num">&quot;config&quot;</span>: {
+    <span class="tk-num">&quot;apps&quot;</span>: {
+      <span class="tk-num">&quot;_default&quot;</span>: {
+        <span class="tk-num">&quot;enabled&quot;</span>: <span class="tk-num">true</span>,
+        <span class="tk-num">&quot;destructive_enabled&quot;</span>: <span class="tk-num">true</span>,
+        <span class="tk-num">&quot;open_world_enabled&quot;</span>: <span class="tk-num">true</span>,
+        <span class="tk-num">&quot;approvals_reviewer&quot;</span>: <span class="tk-str">&quot;user&quot;</span>,
+        <span class="tk-num">&quot;default_tools_approval_mode&quot;</span>: <span class="tk-str">&quot;auto&quot;</span>
+      },
+      <span class="tk-num">&quot;google_drive&quot;</span>: {
+        <span class="tk-num">&quot;enabled&quot;</span>: <span class="tk-num">true</span>,
+        <span class="tk-num">&quot;destructive_enabled&quot;</span>: <span class="tk-num">false</span>,
+        <span class="tk-num">&quot;approvals_reviewer&quot;</span>: <span class="tk-str">&quot;auto_review&quot;</span>,
+        <span class="tk-num">&quot;default_tools_approval_mode&quot;</span>: <span class="tk-str">&quot;prompt&quot;</span>,
+        <span class="tk-num">&quot;tools&quot;</span>: {
+          <span class="tk-num">&quot;files/delete&quot;</span>: { <span class="tk-num">&quot;enabled&quot;</span>: <span class="tk-num">false</span>, <span class="tk-num">&quot;approval_mode&quot;</span>: <span class="tk-str">&quot;approve&quot;</span> }
+        }
+      }
+    }
+  }
+} }
+</code></pre></div>
+<p><code>apps._default.approvals_reviewer</code> 为所有应用设置审批人，除非被某个应用级的值覆盖。两者都省略时，应用会继承顶层的 <code>approvals_reviewer</code> 值。<code>apps._default.default_tools_approval_mode</code> 为没有应用级或工具级覆盖的工具设置回退审批模式。托管审批模式要求会覆盖工具审批模式设置。</p>
+<p>更新单个应用设置：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;config/value/write&quot;</span>,
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">61</span>,
+  <span class="tk-num">&quot;params&quot;</span>: {
+    <span class="tk-num">&quot;keyPath&quot;</span>: <span class="tk-str">&quot;apps.google_drive.default_tools_approval_mode&quot;</span>,
+    <span class="tk-num">&quot;value&quot;</span>: <span class="tk-str">&quot;prompt&quot;</span>,
+    <span class="tk-num">&quot;mergeStrategy&quot;</span>: <span class="tk-str">&quot;replace&quot;</span>
+  }
+}
+</code></pre></div>
+<p>原子地应用多个应用配置修改：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;config/batchWrite&quot;</span>,
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">62</span>,
+  <span class="tk-num">&quot;params&quot;</span>: {
+    <span class="tk-num">&quot;edits&quot;</span>: [
+      {
+        <span class="tk-num">&quot;keyPath&quot;</span>: <span class="tk-str">&quot;apps._default.destructive_enabled&quot;</span>,
+        <span class="tk-num">&quot;value&quot;</span>: <span class="tk-num">false</span>,
+        <span class="tk-num">&quot;mergeStrategy&quot;</span>: <span class="tk-str">&quot;upsert&quot;</span>
+      },
+      {
+        <span class="tk-num">&quot;keyPath&quot;</span>: <span class="tk-str">&quot;apps.google_drive.tools.files/delete.approval_mode&quot;</span>,
+        <span class="tk-num">&quot;value&quot;</span>: <span class="tk-str">&quot;approve&quot;</span>,
+        <span class="tk-num">&quot;mergeStrategy&quot;</span>: <span class="tk-str">&quot;upsert&quot;</span>
+      }
+    ]
+  }
+}
+</code></pre></div>
+<h3 id="config-rpc-examples-for-app-settings">检测并导入外部智能体（agent）配置<a class="anchor" href="#config-rpc-examples-for-app-settings">#</a></h3>
+<p>使用 <code>externalAgentConfig/detect</code> 发现可迁移的外部智能体产物，然后将选中的条目传给 <code>externalAgentConfig/import</code>。</p>
+<p>检测示例：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;externalAgentConfig/detect&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">63</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;includeHome&quot;</span>: <span class="tk-num">true</span>,
+  <span class="tk-num">&quot;cwds&quot;</span>: [<span class="tk-str">&quot;/Users/me/project&quot;</span>]
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">63</span>, <span class="tk-num">&quot;result&quot;</span>: {
+  <span class="tk-num">&quot;items&quot;</span>: [
+    {
+      <span class="tk-num">&quot;itemType&quot;</span>: <span class="tk-str">&quot;AGENTS_MD&quot;</span>,
+      <span class="tk-num">&quot;description&quot;</span>: <span class="tk-str">&quot;Import /Users/me/project/CLAUDE.md to /Users/me/project/AGENTS.md.&quot;</span>,
+      <span class="tk-num">&quot;cwd&quot;</span>: <span class="tk-str">&quot;/Users/me/project&quot;</span>
+    },
+    {
+      <span class="tk-num">&quot;itemType&quot;</span>: <span class="tk-str">&quot;SKILLS&quot;</span>,
+      <span class="tk-num">&quot;description&quot;</span>: <span class="tk-str">&quot;Copy skill folders from /Users/me/.claude/skills to /Users/me/.agents/skills.&quot;</span>,
+      <span class="tk-num">&quot;cwd&quot;</span>: <span class="tk-num">null</span>
+    }
+  ]
+} }
+</code></pre></div>
+<p>导入示例：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;externalAgentConfig/import&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">64</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;migrationItems&quot;</span>: [
+    {
+      <span class="tk-num">&quot;itemType&quot;</span>: <span class="tk-str">&quot;AGENTS_MD&quot;</span>,
+      <span class="tk-num">&quot;description&quot;</span>: <span class="tk-str">&quot;Import /Users/me/project/CLAUDE.md to /Users/me/project/AGENTS.md.&quot;</span>,
+      <span class="tk-num">&quot;cwd&quot;</span>: <span class="tk-str">&quot;/Users/me/project&quot;</span>
+    }
+  ],
+  <span class="tk-num">&quot;source&quot;</span>: <span class="tk-str">&quot;claude-code&quot;</span>
+} }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">64</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;importId&quot;</span>: <span class="tk-str">&quot;8ae96ff3-3425-4f4c-8772-b6fd61502868&quot;</span> } }
+</code></pre></div>
+<p>可选的顶层 <code>source</code> 导入参数用于标注产生所选迁移条目的产品。</p>
+<p>服务器会在各条目类型完成时发出 <code>externalAgentConfig/import/progress</code>，并在所有同步和后台导入完成后发出 <code>externalAgentConfig/import/completed</code>。这些通知包含与响应中相同的 <code>importId</code>，以及按类型列出 <code>successes</code> 和 <code>failures</code> 的 <code>itemTypeResults</code>。完成通知可能在响应之后立即到达，也可能在后台远程导入完成后到达。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;externalAgentConfig/import/progress&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;importId&quot;</span>: <span class="tk-str">&quot;8ae96ff3-3425-4f4c-8772-b6fd61502868&quot;</span>,
+  <span class="tk-num">&quot;itemTypeResults&quot;</span>: [
+    {
+      <span class="tk-num">&quot;itemType&quot;</span>: <span class="tk-str">&quot;AGENTS_MD&quot;</span>,
+      <span class="tk-num">&quot;successes&quot;</span>: [
+        { <span class="tk-num">&quot;itemType&quot;</span>: <span class="tk-str">&quot;AGENTS_MD&quot;</span>, <span class="tk-num">&quot;cwd&quot;</span>: <span class="tk-str">&quot;/Users/me/project&quot;</span>, <span class="tk-num">&quot;source&quot;</span>: <span class="tk-num">null</span>, <span class="tk-num">&quot;target&quot;</span>: <span class="tk-str">&quot;/Users/me/project/AGENTS.md&quot;</span> }
+      ],
+      <span class="tk-num">&quot;failures&quot;</span>: []
+    }
+  ]
+} }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;externalAgentConfig/import/completed&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;importId&quot;</span>: <span class="tk-str">&quot;8ae96ff3-3425-4f4c-8772-b6fd61502868&quot;</span>,
+  <span class="tk-num">&quot;itemTypeResults&quot;</span>: [
+    {
+      <span class="tk-num">&quot;itemType&quot;</span>: <span class="tk-str">&quot;AGENTS_MD&quot;</span>,
+      <span class="tk-num">&quot;successes&quot;</span>: [
+        { <span class="tk-num">&quot;itemType&quot;</span>: <span class="tk-str">&quot;AGENTS_MD&quot;</span>, <span class="tk-num">&quot;cwd&quot;</span>: <span class="tk-str">&quot;/Users/me/project&quot;</span>, <span class="tk-num">&quot;source&quot;</span>: <span class="tk-num">null</span>, <span class="tk-num">&quot;target&quot;</span>: <span class="tk-str">&quot;/Users/me/project/AGENTS.md&quot;</span> }
+      ],
+      <span class="tk-num">&quot;failures&quot;</span>: []
+    }
+  ]
+} }
+</code></pre></div>
+<p>读取此前已完成的导入：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;externalAgentConfig/import/readHistories&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">65</span> }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">65</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;data&quot;</span>: [
+  {
+    <span class="tk-num">&quot;importId&quot;</span>: <span class="tk-str">&quot;8ae96ff3-3425-4f4c-8772-b6fd61502868&quot;</span>,
+    <span class="tk-num">&quot;completedAtMs&quot;</span>: <span class="tk-num">1781784000000</span>,
+    <span class="tk-num">&quot;successes&quot;</span>: [
+      { <span class="tk-num">&quot;itemType&quot;</span>: <span class="tk-str">&quot;AGENTS_MD&quot;</span>, <span class="tk-num">&quot;cwd&quot;</span>: <span class="tk-str">&quot;/Users/me/project&quot;</span>, <span class="tk-num">&quot;source&quot;</span>: <span class="tk-num">null</span>, <span class="tk-num">&quot;target&quot;</span>: <span class="tk-str">&quot;/Users/me/project/AGENTS.md&quot;</span> }
+    ],
+    <span class="tk-num">&quot;failures&quot;</span>: []
+  }
+] } }
+</code></pre></div>
+<p>支持的 <code>itemType</code> 值包括 <code>AGENTS_MD</code>、<code>CONFIG</code>、<code>SKILLS</code>、<code>PLUGINS</code>、<code>MCP_SERVER_CONFIG</code>、<code>SUBAGENTS</code>、<code>HOOKS</code>、<code>COMMANDS</code> 和 <code>SESSIONS</code>。对于 <code>PLUGINS</code> 条目，<code>details.plugins</code> 会列出每个 <code>marketplaceName</code> 以及 Codex 可以尝试迁移的 <code>pluginNames</code>。检测只返回仍有工作要做的条目。例如，当 <code>AGENTS.md</code> 已存在且非空时，Codex 会跳过 AGENTS 迁移；技能导入也不会覆盖已有的技能目录。</p>
+<p>从 <code>.claude/settings.json</code> 检测插件时，Codex 会从 <code>extraKnownMarketplaces</code> 读取已配置的市场源。如果 <code>enabledPlugins</code> 包含来自 <code>claude-plugins-official</code> 的插件但市场源缺失，Codex 会推断来源为 <code>anthropics/claude-plugins-official</code>。</p>
+<h2 id="detect-and-import-external-agent-config">认证端点<a class="anchor" href="#detect-and-import-external-agent-config">#</a></h2>
+<div class="callout"><svg class="ico" width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 12a1 1 0 1 0-2 0v4a1 1 0 1 0 2 0v-4Zm-1-2.5A1.25 1.25 0 1 0 12 7a1.25 1.25 0 0 0 0 2.5Z"/><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2ZM4 12a8 8 0 1 1 16 0 8 8 0 0 1-16 0Z" clip-rule="evenodd"/></svg><div class="callout-body"><p>如果你已经使用 Codex app-server 认证构建了本地或开源应用，可以继续使用，但我们建议迁移到 Sign in with ChatGPT，让用户能更好地控制和了解自己的使用情况。Sign in with ChatGPT 的开发者文档见<a href="https://developers.openai.com/siwc">这里</a>，我们的实现指南（cookbook）见<a href="https://developers.openai.com/cookbook/articles/sign-in-with-chatgpt">这里</a>。App-server 认证从未被允许用于商业或托管服务。我们推出 Sign in with ChatGPT 就是为了支持这些用例，也很期待看到你构建的成果。请在<a href="https://openai.com/form/sign-in-with-chatgpt-interest/">这里</a>加入我们的合作伙伴等候名单。</p></div></div>
+<p>JSON-RPC 的认证/账号接口提供请求/响应方法，以及服务器主动发起的通知（无 <code>id</code>）。可用它们确定认证状态、开始或取消登录、登出、查看 ChatGPT 速率限制，以及在额度耗尽或达到使用限制时通知工作区所有者。</p>
+<h3 id="auth-endpoints">认证模式<a class="anchor" href="#auth-endpoints">#</a></h3>
+<p>Codex 支持以下认证模式。<code>account/updated.authMode</code> 显示当前生效的模式，并在可用时包含当前的 ChatGPT <code>planType</code>。<code>account/read</code> 也会报告账号和套餐详情。</p>
+<ul>
+<li><strong>API 密钥（<code>apikey</code>）</strong> - 调用方通过 <code>type: "apiKey"</code> 提供 OpenAI API 密钥，Codex 会将其存储起来用于 API 请求。</li>
+<li><strong>ChatGPT 托管（<code>chatgpt</code>）</strong> - Codex 负责整个 ChatGPT OAuth 流程，持久化 token 并自动刷新。浏览器流程用 <code>type: "chatgpt"</code> 启动，设备码流程用 <code>type: "chatgptDeviceCode"</code>。</li>
+<li><strong>ChatGPT 外部 token（<code>chatgptAuthTokens</code>）</strong> - 实验性模式，面向已经掌管用户 ChatGPT 认证生命周期的宿主应用。宿主应用直接提供 <code>accessToken</code>、<code>chatgptAccountId</code> 和可选的 <code>chatgptPlanType</code>，并且必须在收到要求时刷新 token。</li>
+<li><strong>Amazon Bedrock</strong> - <code>account/read</code> 将 Bedrock 账号报告为 <code>type: "amazonBedrock"</code>，并指明凭据来自 Codex 托管的 Bedrock API 密钥（<code>credentialSource: "codexManaged"</code>）还是外部 AWS 凭据链（<code>credentialSource: "awsManaged"</code>）。对于 Codex 托管的 Bedrock API 密钥，<code>account/updated.authMode</code> 使用 <code>bedrockApiKey</code>。</li>
+</ul>
+<h3 id="authentication-modes">API 概览<a class="anchor" href="#authentication-modes">#</a></h3>
+<ul>
+<li><code>account/read</code> - 获取当前账号信息；可选择刷新 token。</li>
+<li><code>account/login/start</code> - 开始登录（<code>apiKey</code>、<code>chatgpt</code>、<code>chatgptDeviceCode</code> 或实验性的 <code>chatgptAuthTokens</code>）。</li>
+<li><code>account/login/completed</code>（通知）- 在一次登录尝试结束（成功或出错）时发出。</li>
+<li><code>account/login/cancel</code> - 按 <code>loginId</code> 取消一个进行中的托管 ChatGPT 登录。</li>
+<li><code>account/logout</code> - 登出；会触发 <code>account/updated</code>。</li>
+<li><code>account/updated</code>（通知）- 每当认证模式变化时发出（<code>authMode</code>：<code>apikey</code>、<code>chatgpt</code>、<code>chatgptAuthTokens</code>、<code>agentIdentity</code>、<code>personalAccessToken</code>、<code>bedrockApiKey</code> 或 <code>null</code>），并在可用时包含 <code>planType</code>。</li>
+<li><code>account/chatgptAuthTokens/refresh</code>（服务器请求）- 在授权错误后请求新的外部托管的 ChatGPT token。</li>
+<li><code>account/rateLimits/read</code> - 获取 ChatGPT 速率限制。</li>
+<li><code>account/rateLimits/updated</code>（通知）- 每当用户的 ChatGPT 速率限制变化时发出。</li>
+<li><code>account/sendAddCreditsNudgeEmail</code> - 请求 ChatGPT 就额度耗尽或达到使用限制向工作区所有者发送邮件。</li>
+<li><code>account/rateLimitResetCredit/consume</code> - 使用调用方提供的 <code>idempotencyKey</code> 值消耗一次赚取的速率限制重置。</li>
+<li><code>account/usage/read</code> - 获取 ChatGPT 账号的 token 活动摘要和每日分桶数据。</li>
+<li><code>account/workspaceMessages/read</code> - 获取生效的工作区消息，包括可用时的通知头条。</li>
+<li><code>mcpServer/oauthLogin/completed</code>（通知）- 在 <code>mcpServer/oauth/login</code> 流程结束后发出；负载包含 <code>{ name, threadId, loginId?, success, error? }</code>。较旧的服务器会省略 <code>loginId</code>。对于应用级或插件级 OAuth 流程，<code>threadId</code> 可以为 <code>null</code>。</li>
+<li><code>mcpServer/startupStatus/updated</code>（通知）- 在已配置 MCP 服务器的启动状态变化时发出；负载包含 <code>{ threadId, name, status, error, failureReason }</code>。对于应用级启动，<code>threadId</code> 为 <code>null</code>。启动失败时，<code>failureReason: "reauthenticationRequired"</code> 表示已存储的 OAuth 凭据已过期且无法刷新，因此客户端应主动提供重新连接该服务器的选项。</li>
+</ul>
+<h3 id="api-overview">1) 检查认证状态<a class="anchor" href="#api-overview">#</a></h3>
+<p>请求：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/read&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">1</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;refreshToken&quot;</span>: <span class="tk-num">false</span> } }
+</code></pre></div>
+<p>响应示例：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">1</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;account&quot;</span>: <span class="tk-num">null</span>, <span class="tk-num">&quot;requiresOpenaiAuth&quot;</span>: <span class="tk-num">false</span> } }
+</code></pre></div>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">1</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;account&quot;</span>: <span class="tk-num">null</span>, <span class="tk-num">&quot;requiresOpenaiAuth&quot;</span>: <span class="tk-num">true</span> } }
+</code></pre></div>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">1</span>,
+  <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;account&quot;</span>: { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;apiKey&quot;</span> }, <span class="tk-num">&quot;requiresOpenaiAuth&quot;</span>: <span class="tk-num">true</span> }
+}
+</code></pre></div>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">1</span>,
+  <span class="tk-num">&quot;result&quot;</span>: {
+    <span class="tk-num">&quot;account&quot;</span>: {
+      <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;amazonBedrock&quot;</span>,
+      <span class="tk-num">&quot;credentialSource&quot;</span>: <span class="tk-str">&quot;codexManaged&quot;</span>
+    },
+    <span class="tk-num">&quot;requiresOpenaiAuth&quot;</span>: <span class="tk-num">false</span>
+  }
+}
+</code></pre></div>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">1</span>,
+  <span class="tk-num">&quot;result&quot;</span>: {
+    <span class="tk-num">&quot;account&quot;</span>: {
+      <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;amazonBedrock&quot;</span>,
+      <span class="tk-num">&quot;credentialSource&quot;</span>: <span class="tk-str">&quot;awsManaged&quot;</span>
+    },
+    <span class="tk-num">&quot;requiresOpenaiAuth&quot;</span>: <span class="tk-num">false</span>
+  }
+}
+</code></pre></div>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">1</span>,
+  <span class="tk-num">&quot;result&quot;</span>: {
+    <span class="tk-num">&quot;account&quot;</span>: {
+      <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;chatgpt&quot;</span>,
+      <span class="tk-num">&quot;email&quot;</span>: <span class="tk-str">&quot;user@example.com&quot;</span>,
+      <span class="tk-num">&quot;planType&quot;</span>: <span class="tk-str">&quot;pro&quot;</span>
+    },
+    <span class="tk-num">&quot;requiresOpenaiAuth&quot;</span>: <span class="tk-num">true</span>
+  }
+}
+</code></pre></div>
+<p>字段说明：</p>
+<ul>
+<li><code>refreshToken</code>（布尔值）：设为 <code>true</code> 可在托管 ChatGPT 模式下强制刷新 token。在外部 token 模式（<code>chatgptAuthTokens</code>）下，app-server 会忽略该标志。</li>
+<li>当 ChatGPT 账号没有邮箱地址时，<code>email</code> 为 <code>null</code>。</li>
+<li><code>requiresOpenaiAuth</code> 反映当前生效的提供方；为 <code>false</code> 时，Codex 无需 OpenAI 凭据即可运行。</li>
+<li>当使用由 Codex 托管的 Bedrock API 密钥时，Amazon Bedrock 报告 <code>credentialSource: "codexManaged"</code>；走外部 AWS 凭据路径时报告 <code>credentialSource: "awsManaged"</code>。这只标识所选的凭据来源，并不校验 AWS 凭据链能否解析出凭据。</li>
+</ul>
+<h3 id="1-check-auth-state">2) 使用 API 密钥登录<a class="anchor" href="#1-check-auth-state">#</a></h3>
+<ol>
+<li>发送：</li>
+</ol>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">   {
+     <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/login/start&quot;</span>,
+     <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">2</span>,
+     <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;apiKey&quot;</span>, <span class="tk-num">&quot;apiKey&quot;</span>: <span class="tk-str">&quot;sk-...&quot;</span> }
+   }
+</code></pre></div>
+<ol start="2">
+<li>预期响应：</li>
+</ol>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">   { <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">2</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;apiKey&quot;</span> } }
+</code></pre></div>
+<ol start="3">
+<li>通知：</li>
+</ol>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">   {
+     <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/login/completed&quot;</span>,
+     <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;loginId&quot;</span>: <span class="tk-num">null</span>, <span class="tk-num">&quot;success&quot;</span>: <span class="tk-num">true</span>, <span class="tk-num">&quot;error&quot;</span>: <span class="tk-num">null</span> }
+   }
+</code></pre></div>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">   {
+     <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/updated&quot;</span>,
+     <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;authMode&quot;</span>: <span class="tk-str">&quot;apikey&quot;</span>, <span class="tk-num">&quot;planType&quot;</span>: <span class="tk-num">null</span> }
+   }
+</code></pre></div>
+<h3 id="2-log-in-with-an-api-key">3) 使用 ChatGPT 登录（浏览器流程）<a class="anchor" href="#2-log-in-with-an-api-key">#</a></h3>
+<ol>
+<li>开始：</li>
+</ol>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">   {
+     <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/login/start&quot;</span>,
+     <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">3</span>,
+     <span class="tk-num">&quot;params&quot;</span>: {
+       <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;chatgpt&quot;</span>,
+       <span class="tk-num">&quot;useHostedLoginSuccessPage&quot;</span>: <span class="tk-num">true</span>,
+       <span class="tk-num">&quot;appBrand&quot;</span>: <span class="tk-str">&quot;chatgpt&quot;</span>
+     }
+   }
+</code></pre></div>
+<p>默认情况下，浏览器回调成功后会重定向到本地成功页。当无需进行组织设置时，可设置 <code>useHostedLoginSuccessPage: true</code> 改用托管成功页。启用托管成功页后，<code>appBrand</code> 可以为 <code>"codex"</code> 或 <code>"chatgpt"</code>；省略或为 <code>null</code> 时默认为 <code>"codex"</code>。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">   {
+     <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">3</span>,
+     <span class="tk-num">&quot;result&quot;</span>: {
+       <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;chatgpt&quot;</span>,
+       <span class="tk-num">&quot;loginId&quot;</span>: <span class="tk-str">&quot;&lt;uuid&gt;&quot;</span>,
+       <span class="tk-num">&quot;authUrl&quot;</span>: <span class="tk-str">&quot;https://chatgpt.com/...&amp;redirect_uri=http%3A%2F%2Flocalhost%3A&lt;port&gt;%2Fauth%2Fcallback&quot;</span>
+     }
+   }
+</code></pre></div>
+<ol start="2">
+<li>在浏览器中打开 <code>authUrl</code>；app-server 会承载本地回调。</li>
+<li>等待通知：</li>
+</ol>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">   {
+     <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/login/completed&quot;</span>,
+     <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;loginId&quot;</span>: <span class="tk-str">&quot;&lt;uuid&gt;&quot;</span>, <span class="tk-num">&quot;success&quot;</span>: <span class="tk-num">true</span>, <span class="tk-num">&quot;error&quot;</span>: <span class="tk-num">null</span> }
+   }
+</code></pre></div>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">   {
+     <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/updated&quot;</span>,
+     <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;authMode&quot;</span>: <span class="tk-str">&quot;chatgpt&quot;</span>, <span class="tk-num">&quot;planType&quot;</span>: <span class="tk-str">&quot;plus&quot;</span> }
+   }
+</code></pre></div>
+<h3 id="3-log-in-with-chatgpt-browser-flow">3b) 使用 ChatGPT 登录（设备码流程）<a class="anchor" href="#3-log-in-with-chatgpt-browser-flow">#</a></h3>
+<p>当你的客户端需要自己掌控登录环节，或者浏览器回调不够稳定时，使用该流程。</p>
+<ol>
+<li>开始：</li>
+</ol>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">   {
+     <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/login/start&quot;</span>,
+     <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">4</span>,
+     <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;chatgptDeviceCode&quot;</span> }
+   }
+</code></pre></div>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">   {
+     <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">4</span>,
+     <span class="tk-num">&quot;result&quot;</span>: {
+       <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;chatgptDeviceCode&quot;</span>,
+       <span class="tk-num">&quot;loginId&quot;</span>: <span class="tk-str">&quot;&lt;uuid&gt;&quot;</span>,
+       <span class="tk-num">&quot;verificationUrl&quot;</span>: <span class="tk-str">&quot;https://auth.openai.com/codex/device&quot;</span>,
+       <span class="tk-num">&quot;userCode&quot;</span>: <span class="tk-str">&quot;ABCD-1234&quot;</span>
+     }
+   }
+</code></pre></div>
+<ol start="2">
+<li>向用户展示 <code>verificationUrl</code> 和 <code>userCode</code>；由前端负责用户体验。</li>
+<li>等待通知：</li>
+</ol>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">   {
+     <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/login/completed&quot;</span>,
+     <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;loginId&quot;</span>: <span class="tk-str">&quot;&lt;uuid&gt;&quot;</span>, <span class="tk-num">&quot;success&quot;</span>: <span class="tk-num">true</span>, <span class="tk-num">&quot;error&quot;</span>: <span class="tk-num">null</span> }
+   }
+</code></pre></div>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">   {
+     <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/updated&quot;</span>,
+     <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;authMode&quot;</span>: <span class="tk-str">&quot;chatgpt&quot;</span>, <span class="tk-num">&quot;planType&quot;</span>: <span class="tk-str">&quot;plus&quot;</span> }
+   }
+</code></pre></div>
+<h3 id="3b-log-in-with-chatgpt-device-code-flow">3c) 使用外部托管的 ChatGPT token 登录（<code>chatgptAuthTokens</code>）<a class="anchor" href="#3b-log-in-with-chatgpt-device-code-flow">#</a></h3>
+<p>仅当宿主应用掌管用户的 ChatGPT 认证生命周期并直接提供 token 时，才使用这一实验性模式。客户端必须先在 <code>initialize</code> 期间设置 <code>capabilities.experimentalApi = true</code>，然后才能使用该登录类型。</p>
+<ol>
+<li>发送：</li>
+</ol>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">   {
+     <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/login/start&quot;</span>,
+     <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">7</span>,
+     <span class="tk-num">&quot;params&quot;</span>: {
+       <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;chatgptAuthTokens&quot;</span>,
+       <span class="tk-num">&quot;accessToken&quot;</span>: <span class="tk-str">&quot;&lt;jwt&gt;&quot;</span>,
+       <span class="tk-num">&quot;chatgptAccountId&quot;</span>: <span class="tk-str">&quot;org-123&quot;</span>,
+       <span class="tk-num">&quot;chatgptPlanType&quot;</span>: <span class="tk-str">&quot;business&quot;</span>
+     }
+   }
+</code></pre></div>
+<ol start="2">
+<li>预期响应：</li>
+</ol>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">   { <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">7</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;type&quot;</span>: <span class="tk-str">&quot;chatgptAuthTokens&quot;</span> } }
+</code></pre></div>
+<ol start="3">
+<li>通知：</li>
+</ol>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">   {
+     <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/login/completed&quot;</span>,
+     <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;loginId&quot;</span>: <span class="tk-num">null</span>, <span class="tk-num">&quot;success&quot;</span>: <span class="tk-num">true</span>, <span class="tk-num">&quot;error&quot;</span>: <span class="tk-num">null</span> }
+   }
+</code></pre></div>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">   {
+     <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/updated&quot;</span>,
+     <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;authMode&quot;</span>: <span class="tk-str">&quot;chatgptAuthTokens&quot;</span>, <span class="tk-num">&quot;planType&quot;</span>: <span class="tk-str">&quot;business&quot;</span> }
+   }
+</code></pre></div>
+<p>当服务器收到 <code>401 Unauthorized</code> 时，可能会向宿主应用请求刷新后的 token：</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{
+  <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/chatgptAuthTokens/refresh&quot;</span>,
+  <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">8</span>,
+  <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;reason&quot;</span>: <span class="tk-str">&quot;unauthorized&quot;</span>, <span class="tk-num">&quot;previousAccountId&quot;</span>: <span class="tk-str">&quot;org-123&quot;</span> }
+}
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">8</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;accessToken&quot;</span>: <span class="tk-str">&quot;&lt;jwt&gt;&quot;</span>, <span class="tk-num">&quot;chatgptAccountId&quot;</span>: <span class="tk-str">&quot;org-123&quot;</span>, <span class="tk-num">&quot;chatgptPlanType&quot;</span>: <span class="tk-str">&quot;business&quot;</span> } }
+</code></pre></div>
+<p>收到成功的刷新响应后，服务器会重试原始请求。请求会在大约 10 秒后超时。</p>
+<h3 id="3c-log-in-with-externally-managed-chatgpt-tokens-chatgptauthtokens">4) 取消 ChatGPT 登录<a class="anchor" href="#3c-log-in-with-externally-managed-chatgpt-tokens-chatgptauthtokens">#</a></h3>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/login/cancel&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">4</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;loginId&quot;</span>: <span class="tk-str">&quot;&lt;uuid&gt;&quot;</span> } }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/login/completed&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;loginId&quot;</span>: <span class="tk-str">&quot;&lt;uuid&gt;&quot;</span>, <span class="tk-num">&quot;success&quot;</span>: <span class="tk-num">false</span>, <span class="tk-num">&quot;error&quot;</span>: <span class="tk-str">&quot;...&quot;</span> } }
+</code></pre></div>
+<h3 id="4-cancel-a-chatgpt-login">5) 登出<a class="anchor" href="#4-cancel-a-chatgpt-login">#</a></h3>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/logout&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">5</span> }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">5</span>, <span class="tk-num">&quot;result&quot;</span>: {} }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/updated&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;authMode&quot;</span>: <span class="tk-num">null</span>, <span class="tk-num">&quot;planType&quot;</span>: <span class="tk-num">null</span> } }
+</code></pre></div>
+<h3 id="5-logout">6) 速率限制（ChatGPT）<a class="anchor" href="#5-logout">#</a></h3>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/rateLimits/read&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">6</span> }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">6</span>, <span class="tk-num">&quot;result&quot;</span>: {
+  <span class="tk-num">&quot;rateLimits&quot;</span>: {
+    <span class="tk-num">&quot;limitId&quot;</span>: <span class="tk-str">&quot;codex&quot;</span>,
+    <span class="tk-num">&quot;limitName&quot;</span>: <span class="tk-num">null</span>,
+    <span class="tk-num">&quot;primary&quot;</span>: { <span class="tk-num">&quot;usedPercent&quot;</span>: <span class="tk-num">25</span>, <span class="tk-num">&quot;windowDurationMins&quot;</span>: <span class="tk-num">15</span>, <span class="tk-num">&quot;resetsAt&quot;</span>: <span class="tk-num">1730947200</span> },
+    <span class="tk-num">&quot;secondary&quot;</span>: <span class="tk-num">null</span>,
+    <span class="tk-num">&quot;rateLimitReachedType&quot;</span>: <span class="tk-num">null</span>
+  },
+  <span class="tk-num">&quot;rateLimitsByLimitId&quot;</span>: {
+    <span class="tk-num">&quot;codex&quot;</span>: {
+      <span class="tk-num">&quot;limitId&quot;</span>: <span class="tk-str">&quot;codex&quot;</span>,
+      <span class="tk-num">&quot;limitName&quot;</span>: <span class="tk-num">null</span>,
+      <span class="tk-num">&quot;primary&quot;</span>: { <span class="tk-num">&quot;usedPercent&quot;</span>: <span class="tk-num">25</span>, <span class="tk-num">&quot;windowDurationMins&quot;</span>: <span class="tk-num">15</span>, <span class="tk-num">&quot;resetsAt&quot;</span>: <span class="tk-num">1730947200</span> },
+      <span class="tk-num">&quot;secondary&quot;</span>: <span class="tk-num">null</span>,
+      <span class="tk-num">&quot;rateLimitReachedType&quot;</span>: <span class="tk-num">null</span>
+    },
+    <span class="tk-num">&quot;codex_other&quot;</span>: {
+      <span class="tk-num">&quot;limitId&quot;</span>: <span class="tk-str">&quot;codex_other&quot;</span>,
+      <span class="tk-num">&quot;limitName&quot;</span>: <span class="tk-str">&quot;codex_other&quot;</span>,
+      <span class="tk-num">&quot;primary&quot;</span>: { <span class="tk-num">&quot;usedPercent&quot;</span>: <span class="tk-num">42</span>, <span class="tk-num">&quot;windowDurationMins&quot;</span>: <span class="tk-num">60</span>, <span class="tk-num">&quot;resetsAt&quot;</span>: <span class="tk-num">1730950800</span> },
+      <span class="tk-num">&quot;secondary&quot;</span>: <span class="tk-num">null</span>,
+      <span class="tk-num">&quot;rateLimitReachedType&quot;</span>: <span class="tk-num">null</span>
+    }
+  },
+  <span class="tk-num">&quot;rateLimitResetCredits&quot;</span>: {
+    <span class="tk-num">&quot;availableCount&quot;</span>: <span class="tk-num">2</span>,
+    <span class="tk-num">&quot;credits&quot;</span>: [{
+      <span class="tk-num">&quot;id&quot;</span>: <span class="tk-str">&quot;RateLimitResetCredit_1&quot;</span>,
+      <span class="tk-num">&quot;resetType&quot;</span>: <span class="tk-str">&quot;codexRateLimits&quot;</span>,
+      <span class="tk-num">&quot;status&quot;</span>: <span class="tk-str">&quot;available&quot;</span>,
+      <span class="tk-num">&quot;grantedAt&quot;</span>: <span class="tk-num">1781654400</span>,
+      <span class="tk-num">&quot;expiresAt&quot;</span>: <span class="tk-num">1784246400</span>,
+      <span class="tk-num">&quot;title&quot;</span>: <span class="tk-str">&quot;Rate-limit reset&quot;</span>,
+      <span class="tk-num">&quot;description&quot;</span>: <span class="tk-str">&quot;Reset an eligible Codex rate-limit window.&quot;</span>
+    }]
+  }
+} }
+{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/rateLimits/updated&quot;</span>, <span class="tk-num">&quot;params&quot;</span>: {
+  <span class="tk-num">&quot;rateLimits&quot;</span>: {
+    <span class="tk-num">&quot;limitId&quot;</span>: <span class="tk-str">&quot;codex&quot;</span>,
+    <span class="tk-num">&quot;primary&quot;</span>: { <span class="tk-num">&quot;usedPercent&quot;</span>: <span class="tk-num">31</span>, <span class="tk-num">&quot;windowDurationMins&quot;</span>: <span class="tk-num">15</span>, <span class="tk-num">&quot;resetsAt&quot;</span>: <span class="tk-num">1730948100</span> }
+  }
+} }
+</code></pre></div>
+<p>字段说明：</p>
+<ul>
+<li><code>rateLimits</code> 是向后兼容的单桶视图。</li>
+<li><code>rateLimitsByLimitId</code>（存在时）是以计量 <code>limit_id</code>（例如 <code>codex</code>）为键的多桶视图。</li>
+<li><code>limitId</code> 是计量桶的标识符。</li>
+<li><code>limitName</code> 是该桶可选的面向用户的标签。</li>
+<li><code>usedPercent</code> 是配额窗口内的当前用量。</li>
+<li><code>windowDurationMins</code> 是配额窗口的时长。</li>
+<li><code>resetsAt</code> 是下一次重置的 Unix 时间戳（秒）。</li>
+<li>当服务器返回与某个桶关联的 ChatGPT 套餐时，会包含 <code>planType</code>。</li>
+<li>当服务器返回剩余的工作区额度详情时，会包含 <code>credits</code>。</li>
+<li><code>rateLimitReachedType</code> 在达到限制时标识由服务器分类的限制状态。</li>
+<li><code>rateLimitResetCredits</code> 在服务提供时包含可用的赚取重置次数；否则为 <code>null</code>。</li>
+<li>当只知道数量时，<code>rateLimitResetCredits.credits</code> 为 <code>null</code>。空数组表示服务已获取详情但没有可用的重置额度。服务可能会限制详情行数，因此以 <code>availableCount</code> 为准。</li>
+<li>每个详情行都包含一个不透明的 <code>id</code>、<code>resetType</code>、<code>status</code>、<code>grantedAt</code>、<code>expiresAt</code>（可为 <code>null</code>）、<code>title</code>（可为 <code>null</code>）和 <code>description</code>（可为 <code>null</code>）。</li>
+<li>消耗一次重置后，请再获取 <code>account/rateLimits/read</code>。</li>
+</ul>
+<h3 id="6-rate-limits-chatgpt">7) Token 用量（ChatGPT）<a class="anchor" href="#6-rate-limits-chatgpt">#</a></h3>
+<p>使用 <code>account/usage/read</code> 获取 ChatGPT token 活动摘要字段和可选的每日分桶数据。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/usage/read&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">7</span> }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">7</span>, <span class="tk-num">&quot;result&quot;</span>: {
+  <span class="tk-num">&quot;summary&quot;</span>: {
+    <span class="tk-num">&quot;lifetimeTokens&quot;</span>: <span class="tk-num">1234567</span>,
+    <span class="tk-num">&quot;peakDailyTokens&quot;</span>: <span class="tk-num">45678</span>,
+    <span class="tk-num">&quot;longestRunningTurnSec&quot;</span>: <span class="tk-num">540</span>,
+    <span class="tk-num">&quot;currentStreakDays&quot;</span>: <span class="tk-num">8</span>,
+    <span class="tk-num">&quot;longestStreakDays&quot;</span>: <span class="tk-num">14</span>
+  },
+  <span class="tk-num">&quot;dailyUsageBuckets&quot;</span>: [
+    { <span class="tk-num">&quot;startDate&quot;</span>: <span class="tk-str">&quot;2026-06-18&quot;</span>, <span class="tk-num">&quot;tokens&quot;</span>: <span class="tk-num">12345</span> }
+  ]
+} }
+</code></pre></div>
+<p>字段说明：</p>
+<ul>
+<li>当服务尚未返回某项指标时，<code>summary</code> 中对应的值可能为 <code>null</code>。</li>
+<li><code>dailyUsageBuckets</code> 可能为 <code>null</code>；存在时，每个桶都包含 <code>startDate</code> 和 <code>tokens</code>。</li>
+<li>该端点需要由 Codex 服务支持的认证。ChatGPT、外部 ChatGPT token、智能体身份（agent identity）和个人访问令牌（personal access token）认证可用；仅 API 密钥认证和 Bedrock 认证不可用。</li>
+</ul>
+<h3 id="7-token-usage-chatgpt">8) 赚取的速率限制重置（ChatGPT）<a class="anchor" href="#7-token-usage-chatgpt">#</a></h3>
+<p>使用 <code>account/rateLimitResetCredit/consume</code> 消耗一次赚取的重置。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/rateLimitResetCredit/consume&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">8</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;idempotencyKey&quot;</span>: <span class="tk-str">&quot;8ae96ff3-3425-4f4c-8772-b6fd61502868&quot;</span>, <span class="tk-num">&quot;creditId&quot;</span>: <span class="tk-str">&quot;RateLimitResetCredit_1&quot;</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">8</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;outcome&quot;</span>: <span class="tk-str">&quot;reset&quot;</span> } }
+</code></pre></div>
+<p>字段说明：</p>
+<ul>
+<li><code>idempotencyKey</code> 必须非空。为每次逻辑兑换尝试使用一个 UUID，并在重试该尝试时复用同一个值。</li>
+<li><code>creditId</code> 是可选的。提供时，它必须是来自 <code>account/rateLimits/read</code> 的非空不透明 ID。省略时，由服务选择下一个可用的额度。</li>
+<li><code>reset</code> 表示已消耗一个额度。</li>
+<li><code>alreadyRedeemed</code> 表示同一兑换此前已完成。请将其视为幂等成功，并刷新账号限制。</li>
+<li><code>nothingToReset</code> 表示没有符合条件的可重置速率限制窗口。</li>
+<li><code>noCredit</code> 表示该账号没有可用的赚取重置额度。</li>
+<li>消耗一次重置后，请获取 <code>account/rateLimits/read</code>，而不是从此响应推断更新后的窗口。</li>
+</ul>
+<h3 id="8-earned-rate-limit-resets-chatgpt">9) 向工作区所有者发送限制通知<a class="anchor" href="#8-earned-rate-limit-resets-chatgpt">#</a></h3>
+<p>当额度耗尽或达到使用限制时，使用 <code>account/sendAddCreditsNudgeEmail</code> 请求 ChatGPT 向工作区所有者发送邮件。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/sendAddCreditsNudgeEmail&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">9</span>, <span class="tk-num">&quot;params&quot;</span>: { <span class="tk-num">&quot;creditType&quot;</span>: <span class="tk-str">&quot;credits&quot;</span> } }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">9</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;status&quot;</span>: <span class="tk-str">&quot;sent&quot;</span> } }
+</code></pre></div>
+<p>工作区额度耗尽时使用 <code>creditType: "credits"</code>；工作区达到使用限制时使用 <code>creditType: "usage_limit"</code>。如果所有者最近已被通知过，响应状态为 <code>cooldown_active</code>。</p>
+<h3 id="9-notify-a-workspace-owner-about-a-limit">10) 工作区消息（ChatGPT）<a class="anchor" href="#9-notify-a-workspace-owner-about-a-limit">#</a></h3>
+<p>使用 <code>account/workspaceMessages/read</code> 获取当前工作区的生效消息，包括可用时的通知头条。</p>
+<div class="codewrap"><button class="copy-btn" type="button">复制</button><pre><code class="language-json">{ <span class="tk-num">&quot;method&quot;</span>: <span class="tk-str">&quot;account/workspaceMessages/read&quot;</span>, <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">10</span> }
+{ <span class="tk-num">&quot;id&quot;</span>: <span class="tk-num">10</span>, <span class="tk-num">&quot;result&quot;</span>: { <span class="tk-num">&quot;featureEnabled&quot;</span>: <span class="tk-num">true</span>, <span class="tk-num">&quot;messages&quot;</span>: [
+  { <span class="tk-num">&quot;messageId&quot;</span>: <span class="tk-str">&quot;msg_123&quot;</span>, <span class="tk-num">&quot;messageType&quot;</span>: <span class="tk-str">&quot;headline&quot;</span>, <span class="tk-num">&quot;messageBody&quot;</span>: <span class="tk-str">&quot;Workspace maintenance starts at 5pm.&quot;</span>, <span class="tk-num">&quot;createdAt&quot;</span>: <span class="tk-num">1781395200</span>, <span class="tk-num">&quot;archivedAt&quot;</span>: <span class="tk-num">null</span> }
+] } }
+</code></pre></div>
+      <footer class="article-footer">
+        本页为社区中文翻译，原文版权归 OpenAI 所有，以<a href="https://learn.chatgpt.com/docs/app-server">官方英文页面</a>为准。
+        中英对照 Markdown（<code>app-server.en.md</code> / <code>app-server.zh.md</code>）见本仓库 <code>03-Codex应用服务器/</code> 目录。
+      </footer>
+    </article>
+  </main>
+
+</div>
+
+<script>
+document.querySelectorAll('.codewrap').forEach(function (w) {
+  var btn = w.querySelector('.copy-btn');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    var code = w.querySelector('pre code');
+    navigator.clipboard.writeText(code.innerText).then(function () {
+      btn.textContent = '已复制';
+      setTimeout(function () { btn.textContent = '复制'; }, 1500);
+    });
+  });
+});
+</script>
+</body>
+</html>

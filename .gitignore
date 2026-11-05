@@ -1,0 +1,10 @@
+# Python 虚拟环境（本地渲染 PDF / 校验用，不入库）
+.venv/
+
+# 工具临时导入产物
+.zcode/document-imports/
+
+# 系统与缓存
+.DS_Store
+__pycache__/
+*.pyc
