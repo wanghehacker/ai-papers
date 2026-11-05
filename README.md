@@ -4,6 +4,7 @@
 
 > 翻译新文献时使用工程内 skill：`.agent/skills/translate-article/`（含完整流程、术语表、
 > 组装脚本踩坑记录和 en/zh 一致性自检脚本 `check_translation.py`）。
+> 本仓库的约定、环境与校验要求见 [`AGENTS.md`](AGENTS.md)。
 
 ```
 NN-中文标题/            # 编号两位数字 + 文章中文标题，如 01-面向AI智能体的有效上下文工程
